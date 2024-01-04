@@ -2,7 +2,7 @@ import whisper
 import spacy
 
 
-# Whisper takes an audio file
+# Whisper takes an audio file and outputs the text
 def transcription(audio):
     transcribe = model.transcribe(audio, fp16=False)
     return transcribe["text"]
