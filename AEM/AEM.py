@@ -11,6 +11,18 @@ TODO:
 
 Problems:
     - everything is very abstract
+    - Episode could be described in multiple messages, or multiple Episodes could be described in one message
+        - simplify: every message is one Episode
+
+Notes:
+    - store Episode as spacy doc
+    - use sentiment analysis to determine whether Episode is good or bad
+    - use spacy to capture similiarities of memories/docs
+        - incoorporate sentiment analysis into these similarities
+
+    
+    - Implement Episode retrieval (using spacy similarity + emotional)
+        - Can reliably go back to a specific episode if we talk about something similar?
 """
 
 
