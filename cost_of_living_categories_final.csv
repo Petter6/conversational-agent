@@ -1,0 +1,82 @@
+City,Country,Cost of Living Index,Cost,Beach,Mountain,Wildlife,Nightlife,Cultural,Festival
+Hamilton,Bermuda,135.1,Very High,True,False,False,False,False,False
+Zurich,Switzerland,125.2,Very High,False,True,False,False,True,False
+Basel,Switzerland,124.3,Very High,False,True,False,False,True,False
+Lausanne,Switzerland,120.8,Very High,False,True,False,False,True,False
+San Jose (CA),United States,115.1,Very High,False,False,False,True,False,False
+San Francisco (CA),United States,113.2,Very High,False,False,False,True,True,False
+Geneva,Switzerland,111.8,Very High,False,True,False,True,True,False
+Bern,Switzerland,110.1,Very High,False,True,False,False,True,False
+Seattle (WA),United States,105.2,Very High,False,False,False,True,True,False
+Washington (DC),United States,102.8,Very High,False,False,False,True,True,False
+New York (NY),United States,100.0,Very High,False,False,False,True,True,False
+Honolulu (HI),United States,95.1,Very High,True,False,False,False,True,False
+Los Angeles (CA),United States,94.9,Very High,False,False,False,True,True,False
+Atlanta (GA),United States,93.7,Very High,False,False,False,True,True,False
+Boston (MA),United States,93.4,Very High,False,False,False,True,True,False
+Sacramento (CA),United States,90.1,Very High,False,False,False,True,False,False
+Canberra,Australia,89.5,Very High,False,False,True,False,False,False
+San Diego (CA),United States,89.2,Very High,True,False,False,False,False,False
+Chicago (IL),United States,89.1,Very High,False,False,False,False,True,False
+Reykjavik,Iceland,89.0,Very High,False,True,False,False,False,False
+Trondheim,Norway,88.3,Very High,False,True,False,False,False,False
+Bergen,Norway,87.0,Very High,False,True,False,False,False,False
+Stavanger,Norway,84.0,Very High,False,True,False,False,False,False
+Adelaide,Australia,83.7,Very High,True,False,False,False,False,False
+London,United Kingdom,83.1,Very High,False,False,False,False,True,False
+Denver (CO),United States,83.1,Very High,False,True,False,False,False,False
+Oslo,Norway,83.0,Very High,False,True,False,False,False,False
+Dallas (TX),United States,82.6,Very High,False,False,False,True,False,False
+Copenhagen,Denmark,80.4,Very High,False,False,False,False,False,True
+Perth,Australia,80.2,Very High,True,False,False,False,False,False
+Miami (FL),United States,79.2,Very High,True,False,False,True,False,False
+Auckland,New Zealand,78.1,Very High,True,False,False,False,False,False
+Sydney,Australia,77.8,Very High,True,False,False,True,False,True
+Ottawa,Canada,76.1,Very High,False,False,False,False,True,False
+Melbourne,Australia,75.9,Very High,False,False,False,True,False,False
+Paris,France,75.9,Very High,False,False,False,True,True,False
+New Orleans (LA),United States,75.4,Very High,False,False,False,False,False,True
+Dublin,Ireland,75.1,Very High,False,False,False,False,True,False
+Vancouver,Canada,75.0,Very High,False,False,False,False,True,False
+Brisbane,Australia,74.8,Very High,True,False,False,False,False,False
+Salzburg,Austria,72.8,Very High,False,True,False,False,False,False
+Toronto,Canada,71.9,Very High,False,False,False,False,True,False
+Seoul,South Korea,71.5,Very High,False,False,False,True,True,False
+Tel Aviv-Yafo,Israel,70.8,High,False,False,False,True,False,False
+Edinburgh,United Kingdom,69.4,High,False,True,False,False,False,True
+Munich,Germany,68.7,High,False,False,False,False,False,True
+Amsterdam,Netherlands,67.5,High,False,False,False,True,False,True
+Vienna,Austria,67.1,High,False,False,False,False,True,False
+Berlin,Germany,66.7,High,False,False,False,True,False,False
+Montreal,Canada,66.4,High,False,False,False,False,True,True
+Rome,Italy,60.2,Medium,False,False,False,False,True,False
+Prague,Czech Republic,58.3,Medium,False,False,False,False,True,True
+Athens,Greece,56.9,Medium,False,False,False,False,True,True
+Barcelona,Spain,55.0,Medium,False,False,False,True,False,True
+Tokyo,Japan,54.6,Medium,False,False,False,True,True,False
+Taipei,Taiwan,53.1,Medium,False,False,False,True,False,False
+Beirut,Lebanon,48.2,Medium,False,False,False,True,False,False
+Addis Ababa,Ethiopia,46.3,Medium,False,True,False,False,False,False
+Santiago,Chile,44.9,Low,False,True,False,False,False,False
+Bangkok,Thailand,43.3,Low,False,False,False,True,False,False
+Shanghai,China,42.8,Low,False,False,False,True,True,False
+Phuket,Thailand,39.8,Low,True,False,False,False,False,False
+Rio de Janeiro,Brazil,39.6,Low,True,False,False,True,False,True
+Manila,Philippines,37.7,Low,False,False,False,True,False,False
+Beijing,China,36.9,Low,False,False,False,False,True,False
+Istanbul,Turkey,36.1,Low,False,False,False,True,True,False
+Kuala Lumpur,Malaysia,35.6,Low,False,False,False,True,False,False
+Cape Town,South Africa,34.9,Low,True,False,False,True,False,False
+Quito,Ecuador,34.7,Low,False,True,False,False,False,False
+Bali,Indonesia,34.0,Low,True,False,False,False,False,False
+Casablanca,Morocco,33.1,Very Low,True,False,False,False,False,False
+Medellin,Colombia,32.3,Very Low,False,True,False,False,False,False
+Ho Chi Minh City,Vietnam,32.2,Very Low,False,False,False,True,False,False
+Bogota,Colombia,31.6,Very Low,False,True,False,False,False,False
+Windhoek,Namibia,31.1,Very Low,False,False,True,False,False,False
+Cairo,Egypt,28.3,Very Low,False,False,False,False,True,False
+Buenos Aires,Argentina,28.1,Very Low,False,False,False,True,False,False
+Kathmandu,Nepal,27.6,Very Low,False,True,False,False,False,False
+Nairobi,Kenya,26.3,Very Low,False,False,True,False,False,False
+Mumbai,India,25.2,Very Low,False,False,False,False,True,False
+Delhi,India,24.7,Very Low,False,False,False,False,True,False
