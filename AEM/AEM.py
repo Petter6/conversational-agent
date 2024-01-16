@@ -1,3 +1,6 @@
+from spacy.tokens import Doc
+import spacy
+
 """
 Terms:
 
@@ -26,7 +29,6 @@ Notes:
 """
 
 
-
 class Episode:
     """
     Experiences/Situations encoded in a way that allows distances to other Episodes to be calculated
@@ -39,25 +41,31 @@ class EmotionalQuality:
     """
 
 
-
 class EpisodicMemory:
     """
     Stores a user's personal events from their past, encoded as Episodes
     """
 
 
-
-
 class GoalRepository:
     """
-    Stores a user's existing goals/motivations and concerns
+       Stores a user's existing goals/motivations and concerns
     """
+    def __init__(self, radius):
+        self.nlp = spacy.load("en_core_web_sm")
+        self.texts = []
+
+    def get_docs(self):
+        docs = list(self.nlp.pipe(self.texts))
+        c_doc = Doc.from_docs(docs)
+        assert str(c_doc) == " ".join(self.texts)
+        assert len(list(c_doc.sents)) == len(docs)
+        assert [str(ent) for ent in c_doc.ents] == \
+               [str(ent) for doc in docs for ent in doc.ents]
 
 
 em = EpisodicMemory()
 gr = GoalRepository()
-
-
 
 
 def ecphoricProcessing(state, activity):
@@ -66,10 +74,6 @@ def ecphoricProcessing(state, activity):
     Determines associative strength (distance) between that Episode and all other Episodes stored in Memory
 
     """
-    em
-
-
-
 
 
 def emotionalAppraisal(episode) -> EmotionalQuality:
@@ -77,5 +81,3 @@ def emotionalAppraisal(episode) -> EmotionalQuality:
     Determine emotional quality of experiencing an Episode based on user's Goal Repository
     """
     gr
-
-
