@@ -50,7 +50,7 @@ Vienna,Austria,67.1,High,False,False,False,False,True,False
 Berlin,Germany,66.7,High,False,False,False,True,False,False
 Montreal,Canada,66.4,High,False,False,False,False,True,True
 Rome,Italy,60.2,Medium,False,False,False,False,True,False
-Prague,Czech Republic,58.3,Medium,False,False,False,False,True,True
+Prague,Czechia,58.3,Medium,False,False,False,False,True,True
 Athens,Greece,56.9,Medium,False,False,False,False,True,True
 Barcelona,Spain,55.0,Medium,False,False,False,True,False,True
 Tokyo,Japan,54.6,Medium,False,False,False,True,True,False
@@ -68,7 +68,6 @@ Istanbul,Turkey,36.1,Low,False,False,False,True,True,False
 Kuala Lumpur,Malaysia,35.6,Low,False,False,False,True,False,False
 Cape Town,South Africa,34.9,Low,True,False,False,True,False,False
 Quito,Ecuador,34.7,Low,False,True,False,False,False,False
-Bali,Indonesia,34.0,Low,True,False,False,False,False,False
 Casablanca,Morocco,33.1,Very Low,True,False,False,False,False,False
 Medellin,Colombia,32.3,Very Low,False,True,False,False,False,False
 Ho Chi Minh City,Vietnam,32.2,Very Low,False,False,False,True,False,False
