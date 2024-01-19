@@ -125,12 +125,22 @@ def get_answer_and_emotion():
 
     combined_emotions = get_combined_score(text_emotions_parsed, video_emotions_parsed)
 
-    return result1, combined_emotions
+    return {"message": result1, "emotion": combined_emotions}
+
+
+def is_answer_positive(text):
+    doc = nlp(text)
+    positive_patterns = ['yes', 'sure', 'absolutely', 'agree', 'like', 'correct', 'yeah']
+
+    for token in doc:
+        if token.text.lower() in positive_patterns:
+            return True
+
+    return False
 
 
 def get_budget():
     doc = nlp(get_answer())
-    positive_patterns = ['yes', 'sure', 'absolutely', 'agree', 'like', 'correct', 'yeah']
 
     budget_items = list(doc._.numerize().items())
 
@@ -143,10 +153,12 @@ def get_budget():
     furhat.say(text=f"So your budget is {budget}?", blocking=True)
 
     while True:
-        doc = nlp(get_answer())
-        for token in doc:
-            if token.text.lower() in positive_patterns:
-                return budget
+        text = get_answer()
+
+        if is_answer_positive(text):
+            return budget
+
+        doc = nlp(text)
 
         while not doc.has_extension("numerize"):
             furhat.say(text=f"Can you repeat your budget", blocking=True)
@@ -163,19 +175,77 @@ def get_budget():
         furhat.say(text=f"So your budget is {budget}?", blocking=True)
 
 
+def get_locations_date():
+    negative_patterns = ['no', 'not', 'did not', 'have not', 'never']
+    result = get_answer_and_emotion()
+    doc = nlp(result["message"])
+
+    if any(token.text.lower() in negative_patterns for token in doc):
+        return
+
+    locations = [ent.text for ent in doc.ents if ent.label_ in ["GPE", "LOC"]]
+    dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
+
+    while len(locations) == 0:
+        furhat.say(text=f"Can you repeat your locations", blocking=True)
+        doc = nlp(get_answer())
+        locations = [ent.text for ent in doc.ents if ent.label_ in ["GPE", "LOC"]]
+        furhat.say(text=f"So your locations are {locations}?", blocking=True)
+        answer = get_answer()
+        if is_answer_positive(answer):
+            break
+
+    while not dates:
+        furhat.say(text=f"Can you repeat your date", blocking=True)
+        doc = nlp(get_answer())
+        dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
+        furhat.say(text=f"So your date is {dates}?", blocking=True)
+        answer = get_answer()
+        if is_answer_positive(answer):
+            break
+
+    return locations, dates, result["emotion"]
+
+
 if __name__ == '__main__':
     nlp = spacy.load("en_core_web_md")
 
     # Create an instance of the FurhatRemoteAPI class
     furhat = FurhatRemoteAPI("localhost")
 
-    furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next vacation destination. What is "
-                    "your name?", blocking=True)
-    name = get_answer()
+    # Ask for the user's name
+    # furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next vacation destination. What is "
+    #                "your name?", blocking=True)
+    # name = get_answer()
 
-    furhat.say(text=f"Hi {name}, what is your budget?", blocking=True)
-    total_budget = get_budget()
+    # Ask for the user's budget
+    # furhat.say(text=f"Hi, what is your budget?", blocking=True)
+    # total_budget = get_budget()
 
-    furhat.say(text=f"have you been to any beach towns when did you go and how did you find it", blocking=True)
+    # Ask the user if they have ever been to a beach town?
+    furhat.say(text=f"have you been to any beach towns when did you go and how did you find it?", blocking=True)
+    print(get_locations_date())
+
+
+    """"
+    # Ask the user if they have ever been to a cultural town?
+    furhat.say(text=f"have you been to any cultural towns when did you go and how did you find it?", blocking=True)
     response = get_answer_and_emotion()
-    print(response)
+
+
+
+    # Ask the user if they have ever been to a festival town?
+    furhat.say(text=f"have you been to any festival towns when did you go and how did you find it?", blocking=True)
+    response = get_answer_and_emotion()
+
+
+
+    # Ask the user if they have ever been to a nightlife town?
+    furhat.say(text=f"have you been to any nightlife towns when did you go and how did you find it?", blocking=True)
+    response = get_answer_and_emotion()
+
+
+    # Ask the user if they have ever been to a mountain town?
+    furhat.say(text=f"have you been to any mountain towns when did you go and how did you find it?", blocking=True)
+    response = get_answer_and_emotion()
+    """
