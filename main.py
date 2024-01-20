@@ -5,7 +5,32 @@ from transformers import pipeline
 import cv2
 from fer import FER
 import spacy
-import numerizer
+import numpy as np
+import tempfile
+import pyaudio
+import wave
+import whisper
+import threading
+import os
+import time
+from textblob import TextBlob
+import csv
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# Decides when to stop listening
+# Change this value depending on your environment
+# For me 50 - 70 worked best
+silence_threshold = 70
+
+# Load the Whisper model once
+model = whisper.load_model("base.en")
+
+# Load the spaCy model once
+nlp = spacy.load("en_core_web_md")
+
+# Flag to signal when to stop capturing video
+capture_video_flag = threading.Event()
 
 
 def analyze_emotion(text):
@@ -18,29 +43,111 @@ def analyze_emotion(text):
 
 
 def listen():
-    text = furhat.listen()
-    return text.message
+    temp_file = tempfile.NamedTemporaryFile(suffix=".wav")
+
+    sample_rate = 16000
+    bits_per_sample = 16
+    chunk_size = 1024
+    audio_format = pyaudio.paInt16
+    channels = 1
+
+    # Parameters for detecting silence
+    silence_duration_threshold = 2  # 2 seconds of silence
+    silence_duration = 0
+
+    # Event to signal the end of recording
+    end_recording_event = threading.Event()
+
+    def callback(in_data, frame_count, time_info, status):
+        nonlocal silence_duration
+
+        wav_file.writeframes(in_data)
+        audio_data = np.frombuffer(in_data, dtype=np.int16)
+
+        # Check for silence
+        rms = np.sqrt(np.mean(np.maximum(audio_data ** 2, 0)))  # Ensure non-negative values
+        if not np.isnan(rms) and rms < silence_threshold:
+            silence_duration += chunk_size / sample_rate
+        else:
+            silence_duration = 0
+
+        # If silence duration exceeds the threshold, set the end_recording_event
+        if silence_duration >= silence_duration_threshold:
+            end_recording_event.set()
+
+        return None, pyaudio.paContinue
+
+    # Open the wave file for writing
+    wav_file = wave.open(temp_file.name, 'wb')
+    wav_file.setnchannels(channels)
+    wav_file.setsampwidth(bits_per_sample // 8)
+    wav_file.setframerate(sample_rate)
+
+    # Initialize PyAudio
+    audio = pyaudio.PyAudio()
+
+    # Start recording audio
+    stream = audio.open(format=audio_format,
+                        channels=channels,
+                        rate=sample_rate,
+                        input=True,
+                        frames_per_buffer=chunk_size,
+                        stream_callback=callback)
+
+    try:
+        # Wait until end_recording_event is set or Ctrl+C is pressed
+        end_recording_event.wait()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        # Stop and close the audio stream
+        stream.stop_stream()
+        stream.close()
+        audio.terminate()
+
+        # Close the wave file
+        wav_file.close()
+
+        # Transcribe the audio to text (suppressing warnings about running on a CPU)
+        result = model.transcribe(temp_file.name, fp16=False)
+        temp_file.close()
+
+        return result["text"].strip()
 
 
-def video():
-    # Initialize the camera
+def video_thread():
     cap = cv2.VideoCapture(0)  # 0 is usually the default value for the primary camera
-
-    # Initialize the FER detector
     detector = FER()
 
-    ret, frame = cap.read()
+    # Lists to store emotion scores for each frame
+    emotion_scores_list = []
 
-    if not ret:
-        return
+    while not capture_video_flag.is_set():
+        ret, frame = cap.read()
 
-    emotions = detector.detect_emotions(frame)
+        if not ret:
+            break
 
-    # When everything is done, release the capture
+        emotions = detector.detect_emotions(frame)
+        if emotions is not None and emotions:
+            # Process and use the 'emotions' data as needed
+            emotion_scores_list.append(list(emotions[0]['emotions'].values()))
+
+        # Wait for the next photo interval
+        time.sleep(1)
+
+    # When capture_video_flag is set, release the capture
     cap.release()
     cv2.destroyAllWindows()
 
-    return emotions
+    # Compute the average emotion scores
+    if emotion_scores_list:
+        average_emotions = np.mean(emotion_scores_list, axis=0)
+        print("Average Emotions:", average_emotions)
+        return average_emotions
+    else:
+        print("No frames captured.")
+        return False
 
 
 def parse_text_emotions(data):
@@ -72,11 +179,12 @@ def parse_video_emotions(data):
 
 def get_combined_score(text_emotions, video_emotions):
     emotion_mapping = {
-        'joy': 'happy',
-        'sadness': 'sad',
-        'anger': 'angry',
-        'fear': 'fear',
-        'surprise': 'surprise'
+
+        'joy': 3,
+        'sadness': 4,
+        'anger': 0,
+        'fear': 2,
+        'surprise': 5,
     }
 
     # Calculating the combined emotional scores
@@ -86,93 +194,86 @@ def get_combined_score(text_emotions, video_emotions):
 
     for emotion, text_score in text_emotions.items():
         if emotion in emotion_mapping:
-            video_score = emotion_mapping[emotion]
-            combined_score = text_score * text_weight + video_emotions.get(video_score, 0) * video_weight
+            video_score = video_emotions[emotion_mapping[emotion]]
+            combined_score = text_score * text_weight + video_score * video_weight
         else:
             # If the emotion is not present in the video analysis, use only the text score
             combined_score = text_score * text_weight
 
         emotions_array[emotion] = combined_score
-
     return emotions_array
 
 
 def get_answer():
-    text = furhat.listen()
+    text = listen()
 
-    while not text.message:
+    while not text or text == '.':
         furhat.say(
             text="Sorry I couldn't understand, could you repeat?", blocking=True)
-        text = furhat.listen()
+        text = listen()
 
-    return text.message
+    return text
 
 
 def get_answer_and_emotion():
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        future1 = executor.submit(listen)
-        future2 = executor.submit(video)
+        # Start the video thread
+        video_future = executor.submit(video_thread)
 
-        result1 = future1.result()
-        result2 = future2.result()
+        # Run the listen function in the main thread
+        result1 = listen()
+
+        # Signal the video thread to stop
+        capture_video_flag.set()
+
+        # Get the result of the video thread
+        result2 = video_future.result()
 
     text_emotion = analyze_emotion(result1)
     video_emotion = result2
 
     # Parsing
     text_emotions_parsed = parse_text_emotions(text_emotion)
-    video_emotions_parsed = parse_video_emotions(video_emotion)
 
-    combined_emotions = get_combined_score(text_emotions_parsed, video_emotions_parsed)
+    combined_emotions = get_combined_score(text_emotions_parsed, video_emotion)
+
+    capture_video_flag.clear()
 
     return {"message": result1, "emotion": combined_emotions}
 
 
-def is_answer_positive(text):
-    doc = nlp(text)
-    positive_patterns = ['yes', 'sure', 'absolutely', 'agree', 'like', 'correct', 'yeah']
+def is_answer_positive(answer):
+    # Create a TextBlob object
+    blob = TextBlob(answer)
 
-    for token in doc:
-        if token.text.lower() in positive_patterns:
+    # Get the polarity score
+    polarity = blob.sentiment.polarity
+
+    # Define a threshold for considering a response as positive using polarity
+    polarity_threshold = 0.2
+
+    # Check if the polarity is above the positive threshold
+    if polarity > polarity_threshold:
+        return True
+
+    # Check for positive keywords in the response
+    positive_keywords = ['yes', 'sure', 'absolutely', 'agree', 'like', 'correct', 'yeah', 'right']
+
+    for word in positive_keywords:
+        if word in answer.lower():
             return True
 
     return False
 
 
-def get_budget():
-    doc = nlp(get_answer())
+def check_for(text, pattern):
+    doc = nlp(text)
 
-    budget_items = list(doc._.numerize().items())
+    for token in doc:
+        if token.text.lower() in pattern:
+            return token
 
-    while not budget_items:
-        furhat.say(text=f"Can you repeat your budget", blocking=True)
-        doc = nlp(get_answer())
-        budget_items = list(doc._.numerize().items())
-
-    budget = budget_items[0][1]
-    furhat.say(text=f"So your budget is {budget}?", blocking=True)
-
-    while True:
-        text = get_answer()
-
-        if is_answer_positive(text):
-            return budget
-
-        doc = nlp(text)
-
-        while not doc.has_extension("numerize"):
-            furhat.say(text=f"Can you repeat your budget", blocking=True)
-            doc = nlp(get_answer())
-
-        budget_items = list(doc._.numerize().items())
-
-        while not budget_items:
-            furhat.say(text=f"Can you repeat your budget", blocking=True)
-            doc = nlp(get_answer())
-            budget_items = list(doc._.numerize().items())
-
-        budget = budget_items[0][1]
-        furhat.say(text=f"So your budget is {budget}?", blocking=True)
+    return False
 
 
 def get_locations_date():
@@ -208,44 +309,104 @@ def get_locations_date():
 
 
 if __name__ == '__main__':
-    nlp = spacy.load("en_core_web_md")
-
     # Create an instance of the FurhatRemoteAPI class
     furhat = FurhatRemoteAPI("localhost")
 
+    # Data that will be written to the csv file
+    data = []
+
     # Ask for the user's name
-    # furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next vacation destination. What is "
-    #                "your name?", blocking=True)
-    # name = get_answer()
+    furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is "
+                    "your name?", blocking=True)
+    name = get_answer()
+    data.append(name)
 
-    # Ask for the user's budget
-    # furhat.say(text=f"Hi, what is your budget?", blocking=True)
-    # total_budget = get_budget()
+    # Ask if it is the users dream trip
+    furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
+    dream = get_answer()
 
-    # Ask the user if they have ever been to a beach town?
-    furhat.say(text=f"have you been to any beach towns when did you go and how did you find it?", blocking=True)
-    print(get_locations_date())
+    if is_answer_positive(dream):
+        standard_of_living = 'dream'
+        standard_of_holiday = 'dream'
+    else:
+        # Ask for the user's standard of living
+        furhat.say(text=f"How would you describe your current standard of living at your current location.",
+                   blocking=True)
 
+        standard_of_living = False
 
-    """"
-    # Ask the user if they have ever been to a cultural town?
-    furhat.say(text=f"have you been to any cultural towns when did you go and how did you find it?", blocking=True)
-    response = get_answer_and_emotion()
+        while not standard_of_living:
+            furhat.say(text="Are you a low, medium or high spender in your city.", blocking=True)
+            answer = get_answer()
+            standard_of_living = check_for(answer, ["low", "medium", "high"])
 
+        # Ask for the user's standard of living whilst on holiday
+        furhat.say(text="What is your desired cost of living at your holiday destination?", blocking=True)
 
+        standard_of_holiday = False
 
-    # Ask the user if they have ever been to a festival town?
-    furhat.say(text=f"have you been to any festival towns when did you go and how did you find it?", blocking=True)
-    response = get_answer_and_emotion()
+        while not standard_of_holiday:
+            furhat.say(text="Will you be a low medium or high spender at the destination?", blocking=True)
+            answer = get_answer()
+            standard_of_holiday = check_for(answer, ["low", "medium", "high"])
 
+    data.append([standard_of_living, standard_of_holiday])
 
+    # Ask the user if they have ever been to a beach town
+    furhat.say(text=f"Have you ever been on holiday to a town near a beach?", blocking=True)
+    beach = get_answer()
 
-    # Ask the user if they have ever been to a nightlife town?
-    furhat.say(text=f"have you been to any nightlife towns when did you go and how did you find it?", blocking=True)
-    response = get_answer_and_emotion()
+    while is_answer_positive(beach):
+        furhat.say(text=f"Could you tell me about a time you went to a town near a beach?", blocking=True)
+        response = get_locations_date()
+        data.append(["beach", response])
+        furhat.say(text=f"Were there any other times you went on a holiday to a town near a beach?", blocking=True)
+        beach = get_answer()
 
+    # Ask the user if they have ever been to a cultural town
+    furhat.say(text=f"Have you ever been on holiday to a cultural town?", blocking=True)
+    cultural = get_answer()
 
-    # Ask the user if they have ever been to a mountain town?
-    furhat.say(text=f"have you been to any mountain towns when did you go and how did you find it?", blocking=True)
-    response = get_answer_and_emotion()
-    """
+    while is_answer_positive(cultural):
+        furhat.say(text=f"Could you tell me about a time you went to a cultural town?", blocking=True)
+        response = get_locations_date()
+        data.append(["cultural", response])
+        furhat.say(text=f"Were there any other times you went on a holiday to a cultural town?", blocking=True)
+        cultural = get_answer()
+
+    # Ask the user if they have ever been to a festival town
+    furhat.say(text=f"Have you ever been on holiday to a festival town?", blocking=True)
+    festival = get_answer()
+
+    while is_answer_positive(festival):
+        furhat.say(text=f"Could you tell me about a time you went to a festival town?", blocking=True)
+        response = get_locations_date()
+        data.append(["festival", response])
+        furhat.say(text=f"Were there any other times you went on a holiday to a festival town?", blocking=True)
+        festival = get_answer()
+
+    # Ask the user if they have ever been to a nightlife town
+    furhat.say(text=f"Have you ever been on holiday to a nightlife town?", blocking=True)
+    nightlife = get_answer()
+
+    while is_answer_positive(nightlife):
+        furhat.say(text=f"Could you tell me about a time you went to a nightlife town?", blocking=True)
+        response = get_locations_date()
+        data.append(["nightlife", response])
+        furhat.say(text=f"Were there any other times you went on a holiday to a nightlife town?", blocking=True)
+        nightlife = get_answer()
+
+    # Ask the user if they have ever been to a mountain town
+    furhat.say(text=f"Have you ever been on holiday to a mountain town?", blocking=True)
+    mountain = get_answer()
+
+    while is_answer_positive(mountain):
+        furhat.say(text=f"Could you tell me about a time you went to a mountain town?", blocking=True)
+        response = get_locations_date()
+        data.append(["mountain", response])
+        furhat.say(text=f"Were there any other times you went on a holiday to a mountain town?", blocking=True)
+        mountain = get_answer()
+
+    with open('file.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerows(data)
