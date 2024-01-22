@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Better.",
+    "country": "Netherlands",
+    "city": "Later.",
+    "standard_of_living": "dream",
+    "standard_of_holiday": "dream"
+  },
+  {
+    "type": "beach",
+    "country": "Spain",
+    "date": [
+      "2002"
+    ],
+    "sadness": 0.0674296646118164,
+    "joy": 0.323266339302063,
+    "love": 0.004217313602566719,
+    "anger": 0.3424837026596069,
+    "fear": 0.20063860416412355,
+    "surprise": 0.012764380130171777
+  }
+]

@@ -14,7 +14,8 @@ import threading
 import os
 import time
 from textblob import TextBlob
-import csv
+import json
+import pycountry
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -215,6 +216,13 @@ def get_answer():
     return text
 
 
+def get_country(text):
+    for country in pycountry.countries:
+        if country.name in text:
+            return country.name
+    return ""
+
+
 def get_answer_and_emotion():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Start the video thread
@@ -276,50 +284,52 @@ def check_for(text, pattern):
     return False
 
 
-def get_locations_date():
-    negative_patterns = ['no', 'not', 'did not', 'have not', 'never']
+def get_locations_date(location_type):
     result = get_answer_and_emotion()
     doc = nlp(result["message"])
 
-    if any(token.text.lower() in negative_patterns for token in doc):
-        return
+    country_name = get_country(result["message"])
 
-    locations = [ent.text for ent in doc.ents if ent.label_ in ["GPE", "LOC"]]
     dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
 
-    while len(locations) == 0:
-        furhat.say(text=f"Can you repeat your locations", blocking=True)
-        doc = nlp(get_answer())
-        locations = [ent.text for ent in doc.ents if ent.label_ in ["GPE", "LOC"]]
-        furhat.say(text=f"So your locations are {locations}?", blocking=True)
-        answer = get_answer()
-        if is_answer_positive(answer):
-            break
+    while country_name == "":
+        furhat.say(text=f"What country did you go to?", blocking=True)
+        message = get_answer()
+        country_name = get_country(message)
 
     while not dates:
         furhat.say(text=f"Can you repeat your date", blocking=True)
         doc = nlp(get_answer())
         dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
-        furhat.say(text=f"So your date is {dates}?", blocking=True)
-        answer = get_answer()
-        if is_answer_positive(answer):
-            break
 
-    return locations, dates, result["emotion"]
+    # Create a dictionary for each entry with separate emotion keys
+    entry = {"type": location_type, "country": country_name, "date": dates}
+    entry.update(result["emotion"])
+
+    return entry
 
 
 if __name__ == '__main__':
     # Create an instance of the FurhatRemoteAPI class
     furhat = FurhatRemoteAPI("localhost")
 
-    # Data that will be written to the csv file
+    # Data that will be written to the json file
     data = []
 
     # Ask for the user's name
     furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is "
                     "your name?", blocking=True)
     name = get_answer()
-    data.append(name)
+
+    # Ask for the user's country
+    furhat.say(text="What country do you currently reside in?", blocking=True)
+    country = ""
+    while country == "":
+        country = get_country(get_answer())
+
+    # Ask for the user's country
+    furhat.say(text="What city do you currently live in?", blocking=True)
+    city = get_answer()
 
     # Ask if it is the users dream trip
     furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
@@ -350,7 +360,10 @@ if __name__ == '__main__':
             answer = get_answer()
             standard_of_holiday = check_for(answer, ["low", "medium", "high"])
 
-    data.append([standard_of_living, standard_of_holiday])
+    entry = {"name": name, "country": country, "city": city, "standard_of_living": standard_of_living,
+             "standard_of_holiday": standard_of_holiday}
+
+    data.append(entry)
 
     # Ask the user if they have ever been to a beach town
     furhat.say(text=f"Have you ever been on holiday to a town near a beach?", blocking=True)
@@ -358,8 +371,8 @@ if __name__ == '__main__':
 
     while is_answer_positive(beach):
         furhat.say(text=f"Could you tell me about a time you went to a town near a beach?", blocking=True)
-        response = get_locations_date()
-        data.append(["beach", response])
+        response = get_locations_date("beach")
+        data.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a town near a beach?", blocking=True)
         beach = get_answer()
 
@@ -369,8 +382,8 @@ if __name__ == '__main__':
 
     while is_answer_positive(cultural):
         furhat.say(text=f"Could you tell me about a time you went to a cultural town?", blocking=True)
-        response = get_locations_date()
-        data.append(["cultural", response])
+        response = get_locations_date("cultural")
+        data.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a cultural town?", blocking=True)
         cultural = get_answer()
 
@@ -380,8 +393,8 @@ if __name__ == '__main__':
 
     while is_answer_positive(festival):
         furhat.say(text=f"Could you tell me about a time you went to a festival town?", blocking=True)
-        response = get_locations_date()
-        data.append(["festival", response])
+        response = get_locations_date("festival")
+        data.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a festival town?", blocking=True)
         festival = get_answer()
 
@@ -391,8 +404,8 @@ if __name__ == '__main__':
 
     while is_answer_positive(nightlife):
         furhat.say(text=f"Could you tell me about a time you went to a nightlife town?", blocking=True)
-        response = get_locations_date()
-        data.append(["nightlife", response])
+        response = get_locations_date("nightlife")
+        data.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a nightlife town?", blocking=True)
         nightlife = get_answer()
 
@@ -402,11 +415,10 @@ if __name__ == '__main__':
 
     while is_answer_positive(mountain):
         furhat.say(text=f"Could you tell me about a time you went to a mountain town?", blocking=True)
-        response = get_locations_date()
-        data.append(["mountain", response])
+        response = get_locations_date("mountain")
+        data.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a mountain town?", blocking=True)
         mountain = get_answer()
 
-    with open('file.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows(data)
+    with open('file.json', 'w') as json_file:
+        json.dump(data, json_file, indent=2)
