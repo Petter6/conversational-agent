@@ -1,0 +1,10 @@
+geopy
+pandas
+numpy
+transformers
+opencv-python
+spacy
+fer
+numerizer
+tensorflow
+openai-whisper
