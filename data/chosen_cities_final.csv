@@ -8,7 +8,7 @@ San Francisco,United States,California,37.7558,-122.4449,113.2,False,False,True,
 Geneva,Switzerland,,46.2017,6.1469,111.8,False,True,True,False,True,False
 Bern,Switzerland,,46.9481,7.4475,110.1,False,True,True,False,False,False
 Seattle,United States,Washington,47.6211,-122.3244,105.2,False,False,True,False,True,False
-Washington,United States,District of Columbia,38.9047,-77.0163,102.8,False,False,True,False,True,False
+Washington,United States,District Of Columbia,38.9047,-77.0163,102.8,False,False,True,False,True,False
 New York,United States,New York,40.6943,-73.9249,100.0,False,False,True,False,True,False
 Honolulu,United States,Hawaii,21.3294,-157.846,95.1,True,False,True,False,False,False
 Los Angeles,United States,California,34.1141,-118.4068,94.9,False,False,True,False,True,False
@@ -61,7 +61,7 @@ Santiago,Chile,,-33.4372,-70.6506,44.9,False,True,False,False,False,False
 Bangkok,Thailand,,13.7525,100.4942,43.3,False,False,False,False,True,False
 Shanghai,China,,31.1667,121.4667,42.8,False,False,True,False,True,False
 Phuket,Thailand,,7.8881,98.3975,39.8,True,False,False,False,False,False
-Rio de Janeiro,Brazil,,-22.9111,-43.2056,39.6,True,False,False,False,True,True
+Rio De Janeiro,Brazil,,-22.9111,-43.2056,39.6,True,False,False,False,True,True
 Manila,Philippines,,14.5958,120.9772,37.7,False,False,False,False,True,False
 Beijing,China,,39.904,116.4075,36.9,False,False,True,False,False,False
 Istanbul,Turkey,,41.0136,28.955,36.1,False,False,True,False,True,False
