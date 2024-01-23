@@ -4,8 +4,8 @@ from enum       import Enum
 from geopy      import distance
 
 
-from City       import City, CityNotFound
-
+from City               import City, CityNotFound
+from data.country_CoL   import country_indexes
 
 # Desired CoL at destination: -> Low, Medium, High
 # Current CoL
@@ -41,7 +41,7 @@ dist_matrix = np.array([
 
 chosen_cities   = pd.read_csv("data/chosen_cities_final.csv")
 all_cities      = pd.read_csv("data/worldcities.csv")
-
+country_CoL     = pd.read_csv("data/countries_CoL.csv")
 
 class Level(Enum):
     Dream   = -1
@@ -108,7 +108,7 @@ def get_home_CoL(city_name: str, country_name: str):
     Gets the Cost of Living in the user's city (or country if we don't have that info)
     """
     try:
-        cities = City.get_city_series(chosen_cities, city_ascii=city_name, country=country_name)
+        cities = City.get_city_series(chosen_cities, city_ascii=city_name.title(), country=country_name.title())
 
         if len(cities) == 0:
             raise CityNotFound()
@@ -119,9 +119,7 @@ def get_home_CoL(city_name: str, country_name: str):
     
     except CityNotFound:
         # get CoL from Country
-        
-        # TODO
-        pass
+        return country_indexes[country_name.title()]
 
 
 def make_suggestion(user_data):
