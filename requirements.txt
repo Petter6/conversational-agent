@@ -8,3 +8,6 @@ fer
 numerizer
 tensorflow
 openai-whisper
+pyaudio
+textblob
+pycountry
