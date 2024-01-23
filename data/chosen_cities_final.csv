@@ -1,4 +1,4 @@
-City,Country,Admin,Latitude,Longitude,Cost of Living Index,Beach,Mountain,Cultural,Wildlife,Nightlife,Festival
+city_ascii,country,admin_name,lat,lng,CoL index,beach,mountain,cultural,wildlife,nightlife,festival
 Hamilton,Bermuda,,32.2942,-64.7839,135.1,True,False,False,False,False,False
 Zurich,Switzerland,,47.3744,8.5411,125.2,False,True,True,False,False,False
 Basel,Switzerland,,47.5547,7.5906,124.3,False,True,True,False,False,False
@@ -17,7 +17,7 @@ Boston,United States,Massachusetts,42.3188,-71.0852,93.4,False,False,True,False,
 Sacramento,United States,California,38.5677,-121.4685,90.1,False,False,False,False,True,False
 Canberra,Australia,,-35.2931,149.1269,89.5,False,False,False,True,False,False
 San Diego,United States,California,32.8313,-117.1222,89.2,True,False,False,False,False,False
-Chicago,United States,IL,41.8375,-87.6866,89.1,False,False,True,False,False,False
+Chicago,United States,Illinois,41.8375,-87.6866,89.1,False,False,True,False,False,False
 Reykjavik,Iceland,,64.1467,-21.94,89.0,False,True,False,False,False,False
 Trondheim,Norway,,63.4297,10.3933,88.3,False,True,False,False,False,False
 Bergen,Norway,,60.3894,5.33,87.0,False,True,False,False,False,False
