@@ -1,22 +1,65 @@
 [
   {
-    "name": "Better.",
+    "name": "Peter.",
     "country": "Netherlands",
-    "city": "Later.",
+    "city": "Amsterdam.",
     "standard_of_living": "dream",
-    "standard_of_holiday": "dream"
-  },
-  {
-    "type": "beach",
-    "country": "Spain",
-    "date": [
-      "2002"
-    ],
-    "sadness": 0.0674296646118164,
-    "joy": 0.323266339302063,
-    "love": 0.004217313602566719,
-    "anger": 0.3424837026596069,
-    "fear": 0.20063860416412355,
-    "surprise": 0.012764380130171777
+    "standard_of_holiday": "dream",
+    "trips": [
+      {
+        "type": "beach",
+        "country": "Thailand",
+        "date": [
+          "six years ago"
+        ],
+        "sadness": 0.07930772418446011,
+        "joy": 0.0514991129371855,
+        "love": 0.0017439957708120348,
+        "anger": 0.04974363023704953,
+        "fear": 0.6849710074530708,
+        "surprise": 0.02917902117305332
+      },
+      {
+        "type": "beach",
+        "country": "Denmark",
+        "date": [
+          "8 years old",
+          "winter",
+          "all day"
+        ],
+        "sadness": 0.062022622678014984,
+        "joy": 0.012046681192186146,
+        "love": 0.0017036683857440948,
+        "anger": 0.04676463911268447,
+        "fear": 0.7591788779364692,
+        "surprise": 0.024505706840091287
+      },
+      {
+        "type": "cultural",
+        "country": "Switzerland",
+        "date": [
+          "two years ago"
+        ],
+        "sadness": 0.1531445909227644,
+        "joy": 0.31638880852290563,
+        "love": 0.006808627396821976,
+        "anger": 0.33506224863869805,
+        "fear": 0.049662016851561415,
+        "surprise": 0.007076506695577078
+      },
+      {
+        "type": "mountain",
+        "country": "Switzerland",
+        "date": [
+          "two years ago"
+        ],
+        "sadness": 0.028032276183366785,
+        "joy": 0.7651484508514405,
+        "love": 0.0339428722858429,
+        "anger": 0.014947881780564791,
+        "fear": 0.013949962816822035,
+        "surprise": 0.011645202934741975
+      }
+    ]
   }
 ]

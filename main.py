@@ -315,6 +315,7 @@ if __name__ == '__main__':
 
     # Data that will be written to the json file
     data = []
+    data_trips = []
 
     # Ask for the user's name
     furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is "
@@ -360,11 +361,6 @@ if __name__ == '__main__':
             answer = get_answer()
             standard_of_holiday = check_for(answer, ["low", "medium", "high"])
 
-    entry = {"name": name, "country": country, "city": city, "standard_of_living": standard_of_living,
-             "standard_of_holiday": standard_of_holiday}
-
-    data.append(entry)
-
     # Ask the user if they have ever been to a beach town
     furhat.say(text=f"Have you ever been on holiday to a town near a beach?", blocking=True)
     beach = get_answer()
@@ -372,7 +368,7 @@ if __name__ == '__main__':
     while is_answer_positive(beach):
         furhat.say(text=f"Could you tell me about a time you went to a town near a beach?", blocking=True)
         response = get_locations_date("beach")
-        data.append(response)
+        data_trips.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a town near a beach?", blocking=True)
         beach = get_answer()
 
@@ -383,7 +379,7 @@ if __name__ == '__main__':
     while is_answer_positive(cultural):
         furhat.say(text=f"Could you tell me about a time you went to a cultural town?", blocking=True)
         response = get_locations_date("cultural")
-        data.append(response)
+        data_trips.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a cultural town?", blocking=True)
         cultural = get_answer()
 
@@ -394,7 +390,7 @@ if __name__ == '__main__':
     while is_answer_positive(festival):
         furhat.say(text=f"Could you tell me about a time you went to a festival town?", blocking=True)
         response = get_locations_date("festival")
-        data.append(response)
+        data_trips.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a festival town?", blocking=True)
         festival = get_answer()
 
@@ -405,7 +401,7 @@ if __name__ == '__main__':
     while is_answer_positive(nightlife):
         furhat.say(text=f"Could you tell me about a time you went to a nightlife town?", blocking=True)
         response = get_locations_date("nightlife")
-        data.append(response)
+        data_trips.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a nightlife town?", blocking=True)
         nightlife = get_answer()
 
@@ -416,9 +412,14 @@ if __name__ == '__main__':
     while is_answer_positive(mountain):
         furhat.say(text=f"Could you tell me about a time you went to a mountain town?", blocking=True)
         response = get_locations_date("mountain")
-        data.append(response)
+        data_trips.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a mountain town?", blocking=True)
         mountain = get_answer()
+
+    entry = {"name": name, "country": country, "city": city, "standard_of_living": standard_of_living,
+             "standard_of_holiday": standard_of_holiday, "trips": data_trips}
+
+    data.append(entry)
 
     with open('file.json', 'w') as json_file:
         json.dump(data, json_file, indent=2)
