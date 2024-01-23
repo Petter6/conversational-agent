@@ -6,3 +6,5 @@ opencv-python
 spacy
 fer
 numerizer
+tensorflow
+openai-whisper
