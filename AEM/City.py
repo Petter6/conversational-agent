@@ -18,7 +18,6 @@ from geopy      import distance
 
 
 
-city_coords = pd.read_csv(f"{parent_folder}/data/worldcities.csv")
 
 class CityNotFound(Exception):
     pass
@@ -56,8 +55,28 @@ class City:
     
 
     @staticmethod
-    def from_db(city_name: str, country_name:str=None, state:str=None, handle_multiple_results:bool=False):
-        cities  = City.get_city_series(city_name, country_name, state)
+    def swap_aliases(**kwargs):
+        aliases = {
+            "city" : "city_ascii",
+            "admin" : "admin_name"
+        }
+
+        new_kwargs = {}
+
+        for key, value in kwargs.items():
+            if key in aliases:
+                key = aliases[key]
+
+            new_kwargs[key] = value
+        
+        return new_kwargs
+    
+
+    @staticmethod
+    def from_db(df: pd.DataFrame, handle_multiple_results:bool=False, **kwargs):
+        
+        new_kwargs  = City.swap_aliases(**kwargs)
+        cities      = City.get_city_series(df, **new_kwargs)
 
         if len(cities) == 0:
             raise CityNotFound()
@@ -71,21 +90,18 @@ class City:
         # - 1  city,  handle_multiple_requests unimportant
         # - >1 city & handle_multiple_requests == True
 
-        city = cities.sort_values(by="population", ascending=False).iloc[0]
+        if "population" in cities.columns:
+            city = cities.sort_values(by="population", ascending=False).iloc[0]
+        else:
+            city = cities.iloc[0]
+
         return City.series2City(city)
 
 
     @staticmethod
-    def get_city_series(city_name: str, country_name:str=None, state:str=None):
-        df = city_coords
-
-        df = df[df["city_ascii"] == city_name.title()]
-
-        if country_name:
-            df = df[df["country"] == country_name.title()]
-
-        if state:
-            df = df[df["admin_name"] == state.title()]
+    def get_city_series(df: pd.DataFrame, **kwargs):
+        for key, value in kwargs.items():
+            df = df[df[key] == value.title()]
 
         return df
     
@@ -94,9 +110,11 @@ class City:
         return distance.geodesic((self.lat, self.lon), (city.lat, city.lon))
 
 if __name__ == "__main__":
+    city_coords = pd.read_csv(f"{parent_folder}/data/chosen_cities_final.csv")
+
     cities = [
-        City.from_db("Dubai", handle_multiple_results=True),
-        City.from_db("Delft")
+        City.from_db(city_coords, city="Atlanta", handle_multiple_results=True),
+        City.from_db(city_coords, city="Perth")
     ]
 
     print(f"Distance Between {cities[0].name} and {cities[1].name}: {round(cities[0].distance(cities[1]).km, 2)}km")
