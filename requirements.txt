@@ -1,1 +1,8 @@
 geopy
+pandas
+numpy
+transformers
+opencv-python
+spacy
+fer
+numerizer
