@@ -1,4 +1,8 @@
-import numpy as np
+import numpy    as np
+import pandas   as pd
+
+from City       import City
+
 
 # Desired CoL at destination: -> Low, Medium, High
 # Current CoL
@@ -30,3 +34,23 @@ dist_matrix = np.array([
     [100,   70,     50,     20]
 ])
 # -> Limit CoL of travel city (any cities over this CoL are too expensive)
+
+
+df = pd.read_csv("data/cities_final_admin.csv")
+
+cities = []
+
+for idx, row in df.iterrows():
+    city = City(row["City"], row["Country"], row["Latitude"], row["Longitude"], row["Admin"])
+
+    cities.append(city)
+
+
+user = {
+    "Income" : None,
+    "Want to spend" : None
+}
+
+
+
+pass
