@@ -21,7 +21,7 @@ from textblob import TextBlob
 import pycountry
 import numerizer
 import tensorflow as tf
-# print('imports done')
+print('imports done')
 
 from AEM.suggestion import make_suggestion
 
@@ -356,25 +356,29 @@ if __name__ == '__main__':
     # Ask for the user's name
     furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is "
                     "your name?", blocking=True)
+    print("Getting user name")
     name = get_answer()
-    print('got something')
     # Ask for the user's country
     furhat.say(text="What country do you currently reside in?", blocking=True)
     country = ""
     while country == "":
+        print("Getting user country")
         country = get_country(get_answer())
 
-    # Ask for the user's country
+    # Ask for the user's city
     furhat.say(text="What city do you currently live in?", blocking=True)
+    print("Getting user city")
     city = get_answer()
 
-    # Ask for the user's country
+    # Ask for the user's trip duration
     furhat.say(text="For how many weeks do you want to go on vacation?", blocking=True)
+    print("Getting Duration")
     duration = get_duration()
     print(duration)
 
     # Ask if it is the users dream trip
     furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
+    print("Dream trip?")
     dream = get_answer()
 
     if is_answer_positive(dream):
@@ -389,6 +393,7 @@ if __name__ == '__main__':
 
         while not standard_of_living:
             furhat.say(text="Are you a low, medium or high spender in your city.", blocking=True)
+            print("Type of spender")
             answer = get_answer()
             standard_of_living = check_for(answer, ["low", "medium", "high"])
 
@@ -399,6 +404,7 @@ if __name__ == '__main__':
 
         while not standard_of_holiday:
             furhat.say(text="Will you be a low medium or high spender at the destination?", blocking=True)
+            print("Type of Spender")
             answer = get_answer()
             standard_of_holiday = check_for(answer, ["low", "medium", "high"])
 
