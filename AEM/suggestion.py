@@ -4,7 +4,7 @@ from enum       import Enum
 from geopy      import distance
 
 
-from .City               import City, CityNotFound
+from City               import City, CityNotFound
 from data.country_data  import country_indexes, country_capital_coords
 
 # Desired CoL at destination: -> Low, Medium, High
@@ -126,6 +126,11 @@ def get_home_CoL(city_name: str, country_name: str):
         # get CoL from Country
         return country_indexes[country_name.title()]
 
+class SuggestionReason(Enum):
+    Budget  = 0
+    Country = 1
+    All     = 2
+
 
 def make_suggestion(user_data):
     emotional_threshold = 0.4
@@ -144,6 +149,14 @@ def make_suggestion(user_data):
 
     cities_in_budget = get_available_cities(home_cl, home_coords, trip_duration, income, desire)
 
+    preferred_country   = None
+    reason              = None
+    final_categories    = []
+
+
+    if len(cities_in_budget) == 0:
+        return None, final_categories, preferred_country, SuggestionReason.Budget
+    
 
     # determine category to discard due to not being available
     useable_categories = set()
@@ -156,6 +169,7 @@ def make_suggestion(user_data):
     # emotion 
     category_emotions = {}
     country_emotions =  {}
+
 
 
     # extract category and country emotions
@@ -183,9 +197,16 @@ def make_suggestion(user_data):
     for category, emotions in category_emotions.items():
         category_emotions_avg[category] = np.mean(emotions)
     
+    # if they have never visited any city that belongs to an available category
+    if not category_emotions_avg:
+        # Have to choose from the remaining categories
+        ascending   = not (income in [Level.High, Level.Dream] or desire in [Level.High, Level.Dream])
+        city        = cities_in_budget.sort_values(by="user_cost", ascending=ascending).iloc[0]
+
+        return city, [], preferred_country, SuggestionReason.Budget
+    
     highest_emotion         = max(category_emotions_avg.values())
 
-    final_categories        = []
     for category, avg in category_emotions_avg.items():
         if avg + 0.1 >= highest_emotion:
             final_categories.append(category)
@@ -208,7 +229,9 @@ def make_suggestion(user_data):
             break
 
         if country in cities_in_budget["country"].values:
-            cities_in_budget = cities_in_budget[cities_in_budget["country"] == country]
+            cities_in_budget    = cities_in_budget[cities_in_budget["country"] == country]
+            preferred_country   = country
+            reason              = SuggestionReason.Country
             break
 
     else:
@@ -221,13 +244,14 @@ def make_suggestion(user_data):
         else:
             max_dist = float("+inf")
         
-        cities_in_budget = cities_in_budget[cities_in_budget["distance"] <= max_dist]
+        cities_in_budget    = cities_in_budget[cities_in_budget["distance"] <= max_dist]
+        reason              = SuggestionReason.Budget
 
 
     # maximise spending if either income or desire is high
     ascending = not (income in [Level.High, Level.Dream] or desire in [Level.High, Level.Dream])
 
-    return cities_in_budget.sort_values(by="user_cost", ascending=ascending).iloc[0]
+    return cities_in_budget.sort_values(by="user_cost", ascending=ascending).iloc[0], final_categories, preferred_country, reason
 
 
 
@@ -269,53 +293,7 @@ def make_suggestion(user_data):
 # get_available_cities(83.1, (51.51, -0.13), 4, Level.Medium, Level.High)
 
 
-
-
-history = {
-    'name': 'My name is Pracar.',
-    'country': 'Netherlands',
-    'city': "I'm stood down.",
-    'standard_of_living': 'dream',
-    'standard_of_holiday': 'dream',
-    'duration': 2.142857142857143,
-    'trips': [
-        {
-            'type': 'beach',
-            'country': 'United States',
-            'date': ['2015',
-            '2015',
-            '2015'],
-            'sadness': 0.07724712000574385,
-            'joy': 0.13651098254748756,
-            'love': 0.0015944462269544602,
-            'anger': 0.6894029919760569,
-            'fear': 0.049038076094218674,
-            'surprise': 0.006420567908457349
-        },
-        {
-            'type': 'nightlife',
-            'country': 'Croatia',
-            'date': ['2020'],
-            'sadness': 0.028967636853456498,
-            'joy': 0.7850642719268799,
-            'love': 0.0019789766520261765,
-            'anger': 0.08799616503715516,
-            'fear': 0.03722075480222702,
-            'surprise': 0.027272100105881693
-        },
-        {
-            'type': 'nightlife',
-            'country': 'India',
-            'date': ['2016'],
-            'sadness': 0.013358872607350351,
-            'joy': 0.8816306321280344,
-            'love': 0.0012592091225087643,
-            'anger': 0.036977014149938314,
-            'fear': 0.013566342632685389,
-            'surprise': 0.025207898346441132
-        }
-    ]
-}
+history = {'name': 'Bay standpoint, hahix al-g', 'country': 'Pakistan', 'city': 'Islam about', 'standard_of_living': 'Medium', 'standard_of_holiday': 'medium', 'duration': 3, 'trips': [{'type': 'beach', 'country': 'Pakistan', 'date': ['yesterday'], 'sadness': 0.013657062558457257, 'joy': 0.8595355148315431, 'love': 0.0007222386077046395, 'anger': 0.01909624849818647, 'fear': 0.047439378252252945, 'surprise': 0.01804961050022394}, {'type': 'beach', 'country': 'Pakistan', 'date': ['two weeks ago'], 'sadness': 0.07531824214117867, 'joy': 0.8389168496813093, 'love': 0.013191488385200501, 'anger': 0.02900732524054391, 'fear': 0.011174865569387163, 'surprise': 0.018962633711951123}, {'type': 'beach', 'country': 'United States', 'date': ['2016'], 'sadness': 0.05552987852692605, 'joy': 0.7291374095916748, 'love': 0.006674974411725998, 'anger': 0.07701810960769653, 'fear': 0.011545349508523943, 'surprise': 0.0028943138368427756}, {'type': 'mountain', 'country': 'India', 'date': ['2028'], 'sadness': 0.02632917896751314, 'joy': 0.8379305858612061, 'love': 0.00027401954866945744, 'anger': 0.010043250702321531, 'fear': 0.040121095567010344, 'surprise': 0.03780188525561244}, {'type': 'mountain', 'country': 'Australia', 'date': ['2063'], 'sadness': 0.019804443372786047, 'joy': 0.8364455295562744, 'love': 0.0002806387608870864, 'anger': 0.01627848721947521, 'fear': 0.022711458380706605, 'surprise': 0.010479458705335856}, {'type': 'mountain', 'country': 'Philippines', 'date': ['Five years ago'], 'sadness': 0.018505978481471536, 'joy': 0.026814204739034182, 'love': 0.0013080443255603315, 'anger': 0.19946285638809208, 'fear': 0.6432685234069825, 'surprise': 0.015240429632365705}]}
 
 
 if __name__ == "__main__":
