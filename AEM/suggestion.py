@@ -4,7 +4,7 @@ from enum       import Enum
 from geopy      import distance
 
 
-from City               import City, CityNotFound
+from .City              import City, CityNotFound
 from data.country_CoL   import country_indexes
 
 # Desired CoL at destination: -> Low, Medium, High

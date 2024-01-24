@@ -1,27 +1,29 @@
 import concurrent.futures
 
 from furhat_remote_api import FurhatRemoteAPI
+from spacy.tokens import Doc
 from transformers import pipeline
-print("Import 1")
 import cv2
 from fer import FER
 import spacy
-print("Import 2")
+# print('half done')
 import numpy as np
+import re
 import tempfile
 import pyaudio
-print("Import 3")
 import wave
 import whisper
 import threading
-print("Import 4")
 import os
 import time
 from textblob import TextBlob
-print("Import 5")
+# import json
 import pycountry
+import numerizer
 import tensorflow as tf
-print("Import 6")
+# print('imports done')
+
+from AEM.suggestion import make_suggestion
 
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth=True
@@ -319,7 +321,7 @@ def get_locations_date(location_type):
     return entry
 
 
-def get_number():
+def get_duration():
     doc = nlp(get_answer())
 
     numbers = doc._.numerize()
@@ -330,47 +332,49 @@ def get_number():
         numbers = doc._.numerize()
 
     # Return the first value of the dictionary
-    first_number = next(iter(numbers.values()), None)
+    first_number = next(iter(numbers.values()), None).lower()
 
-    return first_number
+    n = int(re.search('[0-9]+', first_number).group())
+
+    if "day" in first_number:
+        return (n / 7)
+    elif 'month' in first_number:
+        return (n*4)
+    else:
+        return n
+    # return first_number.split()[0]
 
 
 if __name__ == '__main__':
     # Create an instance of the FurhatRemoteAPI class
     furhat = FurhatRemoteAPI("localhost")
-
+    print('started')
     # Data that will be written to the json file
-    data        = []
-    data_trips  = []
-
-    print("------------------------")
-    print("Finally Booted Up")
+    data = []
+    data_trips = []
 
     # Ask for the user's name
-    furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is your name?", blocking=True)
+    furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is "
+                    "your name?", blocking=True)
     name = get_answer()
-
+    print('got something')
     # Ask for the user's country
     furhat.say(text="What country do you currently reside in?", blocking=True)
     country = ""
     while country == "":
-        print("Getting Country")
         country = get_country(get_answer())
 
     # Ask for the user's country
     furhat.say(text="What city do you currently live in?", blocking=True)
-    print("Getting City")
     city = get_answer()
 
     # Ask for the user's country
     furhat.say(text="For how many weeks do you want to go on vacation?", blocking=True)
-    print("Getting Duration")
-    duration = get_number()
+    duration = get_duration()
     print(duration)
 
     # Ask if it is the users dream trip
-    furhat.say(text=f"So {name}, Is this your dream trip? As in money is not an issue?", blocking=True)
-    print("Dream Trip?")
+    furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
     dream = get_answer()
 
     if is_answer_positive(dream):
@@ -385,7 +389,6 @@ if __name__ == '__main__':
 
         while not standard_of_living:
             furhat.say(text="Are you a low, medium or high spender in your city.", blocking=True)
-            print("Type of spender")
             answer = get_answer()
             standard_of_living = check_for(answer, ["low", "medium", "high"])
 
@@ -456,3 +459,7 @@ if __name__ == '__main__':
 
     entry = {"name": name, "country": country, "city": city, "standard_of_living": standard_of_living,
              "standard_of_holiday": standard_of_holiday, "duration": duration, "trips": data_trips}
+    
+    print(entry)
+
+    make_suggestion(entry)
