@@ -358,28 +358,32 @@ if __name__ == '__main__':
                     "your name?", blocking=True)
     print("Getting user name")
     name = get_answer()
+    print(f"Name: {name}")
     # Ask for the user's country
     furhat.say(text="What country do you currently reside in?", blocking=True)
     country = ""
     while country == "":
         print("Getting user country")
         country = get_country(get_answer())
+    print(f"Country: {country}")
 
     # Ask for the user's city
     furhat.say(text="What city do you currently live in?", blocking=True)
     print("Getting user city")
     city = get_answer()
+    print(f"City: {city}")
 
     # Ask for the user's trip duration
     furhat.say(text="For how many weeks do you want to go on vacation?", blocking=True)
     print("Getting Duration")
     duration = get_duration()
-    print(duration)
+    print(f"Duraction: {duration}")
 
     # Ask if it is the users dream trip
     furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
     print("Dream trip?")
     dream = get_answer()
+    print(f"Dream trip: {dream}")
 
     if is_answer_positive(dream):
         standard_of_living = 'dream'
@@ -396,6 +400,8 @@ if __name__ == '__main__':
             print("Type of spender")
             answer = get_answer()
             standard_of_living = check_for(answer, ["low", "medium", "high"])
+        
+        print(f"Standard of Living: {standard_of_living}")
 
         # Ask for the user's standard of living whilst on holiday
         furhat.say(text="What is your desired cost of living at your holiday destination?", blocking=True)
@@ -407,6 +413,9 @@ if __name__ == '__main__':
             print("Type of Spender")
             answer = get_answer()
             standard_of_holiday = check_for(answer, ["low", "medium", "high"])
+        
+
+        print(f"Standard of Holiday: {standard_of_holiday}")
 
     # Ask the user if they have ever been to a beach town
     furhat.say(text=f"Have you ever been on holiday to a town near a beach?", blocking=True)
