@@ -18,6 +18,11 @@ from textblob import TextBlob
 import json
 import pycountry
 import numerizer
+import tensorflow as tf
+
+config = tf.compat.v1.ConfigProto()
+config.gpu_options.allow_growth=True
+
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
