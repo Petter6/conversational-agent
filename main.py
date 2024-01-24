@@ -1,24 +1,27 @@
 import concurrent.futures
 
 from furhat_remote_api import FurhatRemoteAPI
-from spacy.tokens import Doc
 from transformers import pipeline
+print("Import 1")
 import cv2
 from fer import FER
 import spacy
+print("Import 2")
 import numpy as np
 import tempfile
 import pyaudio
+print("Import 3")
 import wave
 import whisper
 import threading
+print("Import 4")
 import os
 import time
 from textblob import TextBlob
-import json
+print("Import 5")
 import pycountry
-import numerizer
 import tensorflow as tf
+print("Import 6")
 
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth=True
@@ -337,31 +340,37 @@ if __name__ == '__main__':
     furhat = FurhatRemoteAPI("localhost")
 
     # Data that will be written to the json file
-    data = []
-    data_trips = []
+    data        = []
+    data_trips  = []
+
+    print("------------------------")
+    print("Finally Booted Up")
 
     # Ask for the user's name
-    furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is "
-                    "your name?", blocking=True)
+    furhat.say(text="Hi there, my name is Matthew, I'm going to help you find your next holiday destination. What is your name?", blocking=True)
     name = get_answer()
 
     # Ask for the user's country
     furhat.say(text="What country do you currently reside in?", blocking=True)
     country = ""
     while country == "":
+        print("Getting Country")
         country = get_country(get_answer())
 
     # Ask for the user's country
     furhat.say(text="What city do you currently live in?", blocking=True)
+    print("Getting City")
     city = get_answer()
 
     # Ask for the user's country
     furhat.say(text="For how many weeks do you want to go on vacation?", blocking=True)
+    print("Getting Duration")
     duration = get_number()
     print(duration)
 
     # Ask if it is the users dream trip
-    furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
+    furhat.say(text=f"So {name}, Is this your dream trip? As in money is not an issue?", blocking=True)
+    print("Dream Trip?")
     dream = get_answer()
 
     if is_answer_positive(dream):
@@ -376,6 +385,7 @@ if __name__ == '__main__':
 
         while not standard_of_living:
             furhat.say(text="Are you a low, medium or high spender in your city.", blocking=True)
+            print("Type of spender")
             answer = get_answer()
             standard_of_living = check_for(answer, ["low", "medium", "high"])
 
