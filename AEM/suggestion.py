@@ -4,8 +4,8 @@ from enum       import Enum
 from geopy      import distance
 
 
-from .City              import City, CityNotFound
-from data.country_CoL   import country_indexes
+from City               import City, CityNotFound
+from data.country_data  import country_indexes, country_capital_coords
 
 # Desired CoL at destination: -> Low, Medium, High
 # Current CoL
@@ -97,9 +97,14 @@ def get_available_cities(home_cl_idx: int, home_coords: int, duration: int, inco
 
 
 def get_city_coords(city_name: str, country_name: str):
-    city = City.from_db(all_cities, city_ascii=city_name, country=country_name)
+    try:
+        city = City.from_db(all_cities, city_ascii=city_name, country=country_name)
+        return city.lat, city.lon
+    
+    # if city not found, use capital's coords
+    except CityNotFound:
+        return country_capital_coords[country_name.title()]
 
-    return city.lat, city.lon
 
 
 
@@ -267,67 +272,48 @@ def make_suggestion(user_data):
 
 
 history = {
-    "name": "Peter.",
-    "country": "Netherlands",
-    "city": "Amsterdam",
-    "standard_of_living": "dream",
-    "standard_of_holiday": "dream",
-    "duration" : 2,
-    "trips": [
-      {
-        "type": "beach",
-        "country": "Thailand",
-        "date": [
-          "six years ago"
-        ],
-        "sadness": 0.07930772418446011,
-        "joy": 0.0514991129371855,
-        "love": 0.0017439957708120348,
-        "anger": 0.04974363023704953,
-        "fear": 0.6849710074530708,
-        "surprise": 0.02917902117305332
-      },
-      {
-        "type": "beach",
-        "country": "Denmark",
-        "date": [
-          "8 years old",
-          "winter",
-          "all day"
-        ],
-        "sadness": 0.062022622678014984,
-        "joy": 0.012046681192186146,
-        "love": 0.0017036683857440948,
-        "anger": 0.04676463911268447,
-        "fear": 0.7591788779364692,
-        "surprise": 0.024505706840091287
-      },
-      {
-        "type": "cultural",
-        "country": "Switzerland",
-        "date": [
-          "two years ago"
-        ],
-        "sadness": 0.1531445909227644,
-        "joy": 0.31638880852290563,
-        "love": 0.006808627396821976,
-        "anger": 0.33506224863869805,
-        "fear": 0.049662016851561415,
-        "surprise": 0.007076506695577078
-      },
-      {
-        "type": "mountain",
-        "country": "Switzerland",
-        "date": [
-          "two years ago"
-        ],
-        "sadness": 0.028032276183366785,
-        "joy": 0.7651484508514405,
-        "love": 0.0339428722858429,
-        "anger": 0.014947881780564791,
-        "fear": 0.013949962816822035,
-        "surprise": 0.011645202934741975
-      }
+    'name': 'My name is Pracar.',
+    'country': 'Netherlands',
+    'city': "I'm stood down.",
+    'standard_of_living': 'dream',
+    'standard_of_holiday': 'dream',
+    'duration': 2.142857142857143,
+    'trips': [
+        {
+            'type': 'beach',
+            'country': 'United States',
+            'date': ['2015',
+            '2015',
+            '2015'],
+            'sadness': 0.07724712000574385,
+            'joy': 0.13651098254748756,
+            'love': 0.0015944462269544602,
+            'anger': 0.6894029919760569,
+            'fear': 0.049038076094218674,
+            'surprise': 0.006420567908457349
+        },
+        {
+            'type': 'nightlife',
+            'country': 'Croatia',
+            'date': ['2020'],
+            'sadness': 0.028967636853456498,
+            'joy': 0.7850642719268799,
+            'love': 0.0019789766520261765,
+            'anger': 0.08799616503715516,
+            'fear': 0.03722075480222702,
+            'surprise': 0.027272100105881693
+        },
+        {
+            'type': 'nightlife',
+            'country': 'India',
+            'date': ['2016'],
+            'sadness': 0.013358872607350351,
+            'joy': 0.8816306321280344,
+            'love': 0.0012592091225087643,
+            'anger': 0.036977014149938314,
+            'fear': 0.013566342632685389,
+            'surprise': 0.025207898346441132
+        }
     ]
 }
 
@@ -335,4 +321,4 @@ history = {
 
 suggestion = make_suggestion(history)
 
-pass
+print(suggestion)
