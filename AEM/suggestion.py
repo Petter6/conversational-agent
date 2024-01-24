@@ -203,7 +203,7 @@ def make_suggestion(user_data):
         ascending   = not (income in [Level.High, Level.Dream] or desire in [Level.High, Level.Dream])
         city        = cities_in_budget.sort_values(by="user_cost", ascending=ascending).iloc[0]
 
-        return city, [], preferred_country, SuggestionReason.Budget
+        return city, final_categories, preferred_country, SuggestionReason.Budget
     
     highest_emotion         = max(category_emotions_avg.values())
 
@@ -255,6 +255,111 @@ def make_suggestion(user_data):
 
 
 
+def make_bad_suggestion(user_data):
+    emotional_threshold = 0.4
+    country_threshold   = 0.4
+
+    trips   = user_data["trips"]
+    country = user_data["country"]
+    city    = user_data["city"]
+
+    income  = Level.__members__[user_data["standard_of_living"].capitalize()]
+    desire  = Level.__members__[user_data["standard_of_holiday"].capitalize()]
+
+    trip_duration   = user_data["duration"]
+    home_cl         = get_home_CoL(city, country)
+    home_coords     = get_city_coords(city, country)
+
+    cities_in_budget = get_available_cities(home_cl, home_coords, trip_duration, income, desire)
+
+    preferred_country   = None
+    reason              = None
+    final_categories    = []
+
+
+    if len(cities_in_budget) == 0:
+        return None, final_categories, preferred_country, SuggestionReason.Budget
+    
+
+    # determine category to discard due to not being available
+    useable_categories = set()
+    for category in categories:
+
+        if any(cities_in_budget[category]):
+            useable_categories.add(category)
+
+
+    # emotion
+    categories_visited  = {}
+    countries_visited   = {}
+
+
+    # extract category and country emotions
+    for trip in trips:
+        category            = trip["type"]
+        country             = trip["country"]
+
+        if country not in countries_visited:
+            countries_visited[country] = 0
+
+        countries_visited[country] += 1
+
+        # disregard any categories that are outside the user's budget
+        if category in useable_categories:
+
+            if category not in categories_visited:
+                categories_visited[category] = 0
+
+            categories_visited[category] += 1
+
+    sorted_categories   = sorted(categories_visited, key=categories_visited.get, reverse=True)
+    highest_countries   = sorted(countries_visited, key=countries_visited.get, reverse=True)
+
+
+    for category in sorted_categories:
+        if category in useable_categories:
+            break
+    else:
+        # none of the visited categories are available
+        ascending   = not (income in [Level.High, Level.Dream] or desire in [Level.High, Level.Dream])
+        city        = cities_in_budget.sort_values(by="user_cost", ascending=ascending).iloc[0]
+
+        return city, final_categories, preferred_country, SuggestionReason.Budget
+    
+
+
+    cities_in_budget = cities_in_budget[cities_in_budget[sorted_categories[0]]]
+
+
+
+    for country in highest_countries:
+        if country in cities_in_budget["country"].values:
+            cities_in_budget    = cities_in_budget[cities_in_budget["country"] == country]
+            preferred_country   = country
+            reason              = SuggestionReason.Country
+            break
+
+    else:
+        if trip_duration <= 1:
+            max_dist = 1000
+        elif trip_duration <= 2:
+            max_dist = 3000
+        elif trip_duration <= 4:
+            max_dist = 6000
+        else:
+            max_dist = float("+inf")
+
+        if len(cities_in_budget[cities_in_budget["distance"] <= max_dist]) != 0:
+            cities_in_budget    = cities_in_budget[cities_in_budget["distance"] <= max_dist]
+            reason              = SuggestionReason.Budget
+
+
+    # maximise spending if either income or desire is high
+    ascending = not (income in [Level.High, Level.Dream] or desire in [Level.High, Level.Dream])
+
+    return cities_in_budget.sort_values(by="user_cost", ascending=ascending).iloc[0], final_categories, preferred_country, reason
+
+
 
 
 
@@ -293,9 +398,9 @@ def make_suggestion(user_data):
 # get_available_cities(83.1, (51.51, -0.13), 4, Level.Medium, Level.High)
 
 
-history = {'name': 'Bay standpoint, hahix al-g', 'country': 'Pakistan', 'city': 'Islam about', 'standard_of_living': 'Medium', 'standard_of_holiday': 'medium', 'duration': 3, 'trips': [{'type': 'beach', 'country': 'Pakistan', 'date': ['yesterday'], 'sadness': 0.013657062558457257, 'joy': 0.8595355148315431, 'love': 0.0007222386077046395, 'anger': 0.01909624849818647, 'fear': 0.047439378252252945, 'surprise': 0.01804961050022394}, {'type': 'beach', 'country': 'Pakistan', 'date': ['two weeks ago'], 'sadness': 0.07531824214117867, 'joy': 0.8389168496813093, 'love': 0.013191488385200501, 'anger': 0.02900732524054391, 'fear': 0.011174865569387163, 'surprise': 0.018962633711951123}, {'type': 'beach', 'country': 'United States', 'date': ['2016'], 'sadness': 0.05552987852692605, 'joy': 0.7291374095916748, 'love': 0.006674974411725998, 'anger': 0.07701810960769653, 'fear': 0.011545349508523943, 'surprise': 0.0028943138368427756}, {'type': 'mountain', 'country': 'India', 'date': ['2028'], 'sadness': 0.02632917896751314, 'joy': 0.8379305858612061, 'love': 0.00027401954866945744, 'anger': 0.010043250702321531, 'fear': 0.040121095567010344, 'surprise': 0.03780188525561244}, {'type': 'mountain', 'country': 'Australia', 'date': ['2063'], 'sadness': 0.019804443372786047, 'joy': 0.8364455295562744, 'love': 0.0002806387608870864, 'anger': 0.01627848721947521, 'fear': 0.022711458380706605, 'surprise': 0.010479458705335856}, {'type': 'mountain', 'country': 'Philippines', 'date': ['Five years ago'], 'sadness': 0.018505978481471536, 'joy': 0.026814204739034182, 'love': 0.0013080443255603315, 'anger': 0.19946285638809208, 'fear': 0.6432685234069825, 'surprise': 0.015240429632365705}]}
+history = {'name': 'Nicolas', 'country': 'Netherlands', 'city': 'The Hague.', 'standard_of_living': 'Medium', 'standard_of_holiday': 'Medium', 'duration': 1, 'trips': [{'type': 'beach', 'country': 'United States', 'date': ['the summer of 2015', 'June 15th'], 'sadness': 0.09187381370862326, 'joy': 0.09932423309485117, 'love': 0.01076851487159729, 'anger': 0.43300877126057946, 'fear': 0.3034272747039795, 'surprise': 0.005597362185517947}, {'type': 'cultural', 'country': 'Italy', 'date': ['2021', 'October'], 'sadness': 0.015185555836651474, 'joy': 0.9147586975097657, 'love': 0.0004509235266596079, 'anger': 0.012699484010227025, 'fear': 0.005083372334484011, 'surprise': 0.0018218814497813582}, {'type': 'mountain', 'country': 'Austria', 'date': ['2022', 'the summer', 'July'], 'sadness': 0.031146250875294205, 'joy': 0.0925911584377289, 'love': 0.0013834996148943902, 'anger': 0.2573127412796021, 'fear': 0.5574258937835693, 'surprise': 0.014140483576059341}]}
 
 
 if __name__ == "__main__":
-    suggestion = make_suggestion(history)
+    suggestion = make_bad_suggestion(history)
     print(suggestion)
