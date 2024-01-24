@@ -1,6 +1,7 @@
 import concurrent.futures
 
 from furhat_remote_api import FurhatRemoteAPI
+from spacy.tokens import Doc
 from transformers import pipeline
 import cv2
 from fer import FER
@@ -16,6 +17,7 @@ import time
 from textblob import TextBlob
 import json
 import pycountry
+import numerizer
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -279,7 +281,7 @@ def check_for(text, pattern):
 
     for token in doc:
         if token.text.lower() in pattern:
-            return token
+            return str(token)
 
     return False
 
@@ -309,6 +311,22 @@ def get_locations_date(location_type):
     return entry
 
 
+def get_number():
+    doc = nlp(get_answer())
+
+    numbers = doc._.numerize()
+
+    while not numbers:
+        furhat.say(text=f"Can you repeat your duration", blocking=True)
+        doc = nlp(get_answer())
+        numbers = doc._.numerize()
+
+    # Return the first value of the dictionary
+    first_number = next(iter(numbers.values()), None)
+
+    return first_number
+
+
 if __name__ == '__main__':
     # Create an instance of the FurhatRemoteAPI class
     furhat = FurhatRemoteAPI("localhost")
@@ -331,6 +349,11 @@ if __name__ == '__main__':
     # Ask for the user's country
     furhat.say(text="What city do you currently live in?", blocking=True)
     city = get_answer()
+
+    # Ask for the user's country
+    furhat.say(text="For how many weeks do you want to go on vacation?", blocking=True)
+    duration = get_number()
+    print(duration)
 
     # Ask if it is the users dream trip
     furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
@@ -371,7 +394,7 @@ if __name__ == '__main__':
         data_trips.append(response)
         furhat.say(text=f"Were there any other times you went on a holiday to a town near a beach?", blocking=True)
         beach = get_answer()
-
+    
     # Ask the user if they have ever been to a cultural town
     furhat.say(text=f"Have you ever been on holiday to a cultural town?", blocking=True)
     cultural = get_answer()
@@ -417,9 +440,4 @@ if __name__ == '__main__':
         mountain = get_answer()
 
     entry = {"name": name, "country": country, "city": city, "standard_of_living": standard_of_living,
-             "standard_of_holiday": standard_of_holiday, "trips": data_trips}
-
-    data.append(entry)
-
-    with open('file.json', 'w') as json_file:
-        json.dump(data, json_file, indent=2)
+             "standard_of_holiday": standard_of_holiday, "duration": duration, "trips": data_trips}
