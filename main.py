@@ -493,4 +493,54 @@ if __name__ == '__main__':
 
     def night_visit():
         # Ask the user if they have ever been to a nightlife town
-        furhat.say(text=f"Have you ever been on holiday t
+        furhat.say(text=f"Have you ever been on holiday to a nightlife town?", blocking=True)
+        nightlife = get_answer()
+
+        while is_answer_positive(nightlife):
+            furhat.say(text=f"Could you tell me about a time you went to a nightlife town?", blocking=True)
+            response = get_locations_date("nightlife")
+            data_trips.append(response)
+            options = ['that sounds fun', 'that"s a good party town', 'love the parties there', 'hope you went to a rave there']
+            chosen = random.randint(0,len(options)-1)        
+            furhat.say(text=f"{options[chosen]}, were there any other times you went on a holiday to a nightlife town?", blocking=True)
+            nightlife = get_answer()
+
+    def mountain_visit():
+        # Ask the user if they have ever been to a mountain town
+        furhat.say(text=f"Have you ever been on holiday to a mountain town?", blocking=True)
+        mountain = get_answer()
+
+        while is_answer_positive(mountain):
+            furhat.say(text=f"Could you tell me about a time you went to a mountain town?", blocking=True)
+            response = get_locations_date("mountain")
+            data_trips.append(response)
+            options = ['that sounds fun', 'hope you went climbing', 'isn"t that a great one', 'hard to top that']
+            chosen = random.randint(0,len(options)-1)
+            furhat.say(text=f"{options[chosen]}, were there any other times you went on a holiday to a mountain town?", blocking=True)
+            mountain = get_answer()
+
+    order = [1,2,3,4,5]
+    while order:
+        elem = order.pop(random.randrange(len(order)))
+        if elem == 1:
+            beach_visit()
+        elif elem == 2:
+            mountain_visit()
+        elif elem == 3:
+            night_visit()
+        elif elem == 4:
+            fesitval_visit()
+        else:
+            culture_visit()
+            
+    entry = {"name": name, "country": country, "city": city, "standard_of_living": standard_of_living,
+             "standard_of_holiday": standard_of_holiday, "duration": duration, "trips": data_trips}
+    
+    
+    # entry = {'name': 'Nathan.', 'country': 'Netherlands', 'city': 'Amster Kepler', 'standard_of_living': 'dream', 'standard_of_holiday': 'dream', 'duration': 4.285714285714286, 'trips': [{'type': 'beach', 'country': 'Portugal', 'date': ['2015'], 'sadness': 0.017118087828159333, 'joy': 0.5593237648010254, 'love': 0.004704339429736137, 'anger': 0.3062175760269165, 'fear': 0.04504127371311188, 'surprise': 0.06259498874843121}, {'type': 'beach', 'country': 'Netherlands', 'date': ['Yesterday'], 'sadness': 0.11977563908696173, 'joy': 0.7676355857849122, 'love': 0.005949277058243752, 'anger': 0.04000478506088258, 'fear': 0.04234143640846015, 'surprise': 0.0042932754829525955}, {'type': 'beach', 'country': 'Netherlands', 'date': ['2022'], 'sadness': 0.017032884573394604, 'joy': 0.7118481025695801, 'love': 0.0036800395697355274, 'anger': 0.2099499954743819, 'fear': 0.01876350371945988, 'surprise': 0.007089034088633278}, {'type': 'beach', 'country': 'China', 'date': ['2023'], 'sadness': 0.05136462897119614, 'joy': 0.0863092386355767, 'love': 0.7189593315124512, 'anger': 0.012041745144587297, 'fear': 0.0526331651955843, 'surprise': 0.026076463270645875}, {'type': 'cultural', 'country': 'Croatia', 'date': ['2023'], 'sadness': 0.07972648753060235, 'joy': 0.0476765886363056, 'love': 0.0008350875228643418, 'anger': 0.5750052545335559, 'fear': 0.26924884510040287, 'surprise': 0.01461883828788996}, {'type': 'nightlife', 'country': 'Netherlands', 'date': ['A year ago'], 'sadness': 0.06429234853982926, 'joy': 0.7902361808776855, 'love': 0.0021601734682917596, 'anger': 0.058606953597068794, 'fear': 0.030888607661426065, 'surprise': 0.008815703259408475}, {'type': 'mountain', 'country': 'Austria', 'date': ['2020'], 'sadness': 0.0506448135872682, 'joy': 0.8677606074015299, 'love': 0.0004209890961647034, 'anger': 0.008734157767146826, 'fear': 0.02332216572078566, 'surprise': 0.01011728929107388}]}
+
+    print(entry)
+
+    say_suggestion(entry)
+
+    say_suggestion(entry, make_bad_suggestion=True)
