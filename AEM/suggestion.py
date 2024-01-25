@@ -4,7 +4,7 @@ from enum       import Enum
 from geopy      import distance
 
 
-from .City               import City, CityNotFound
+from City               import City, CityNotFound
 from data.country_data  import country_indexes, country_capital_coords
 
 # Desired CoL at destination: -> Low, Medium, High
@@ -398,9 +398,9 @@ def make_bad_suggestion(user_data):
 # get_available_cities(83.1, (51.51, -0.13), 4, Level.Medium, Level.High)
 
 
-history = {'name': 'Nicolas', 'country': 'Netherlands', 'city': 'The Hague.', 'standard_of_living': 'Medium', 'standard_of_holiday': 'Medium', 'duration': 1, 'trips': [{'type': 'beach', 'country': 'United States', 'date': ['the summer of 2015', 'June 15th'], 'sadness': 0.09187381370862326, 'joy': 0.09932423309485117, 'love': 0.01076851487159729, 'anger': 0.43300877126057946, 'fear': 0.3034272747039795, 'surprise': 0.005597362185517947}, {'type': 'cultural', 'country': 'Italy', 'date': ['2021', 'October'], 'sadness': 0.015185555836651474, 'joy': 0.9147586975097657, 'love': 0.0004509235266596079, 'anger': 0.012699484010227025, 'fear': 0.005083372334484011, 'surprise': 0.0018218814497813582}, {'type': 'mountain', 'country': 'Austria', 'date': ['2022', 'the summer', 'July'], 'sadness': 0.031146250875294205, 'joy': 0.0925911584377289, 'love': 0.0013834996148943902, 'anger': 0.2573127412796021, 'fear': 0.5574258937835693, 'surprise': 0.014140483576059341}]}
 
 
 if __name__ == "__main__":
-    suggestion = make_bad_suggestion(history)
+    history = {'name': 'Tom.', 'country': 'Netherlands', 'city': 'Delft.', 'standard_of_living': 'dream', 'standard_of_holiday': 'dream', 'duration': 2, 'trips': [{'type': 'beach', 'country': 'France', 'date': ['2008', '2009'], 'sadness': 0.08108399735178266, 'joy': 0.0914768112386976, 'love': 0.003425953909754753, 'anger': 0.5603120171683176, 'fear': 0.21467201505388533, 'surprise': 0.0047435643800667355}, {'type': 'festival', 'country': 'Belgium', 'date': ['Last summer'], 'sadness': 0.051272115834554044, 'joy': 0.8026531683603922, 'love': 0.04057048261165619, 'anger': 0.03750362576395273, 'fear': 0.024996564564357202, 'surprise': 0.0042039436792333925}, {'type': 'festival', 'country': 'Belgium', 'date': ['2019'], 'sadness': 0.09132963759824635, 'joy': 0.7757455463409424, 'love': 0.0330091655254364, 'anger': 0.031910131447017195, 'fear': 0.048415834272280335, 'surprise': 0.002589695479720831}, {'type': 'mountain', 'country': 'Austria', 'date': ['the winter'], 'sadness': 0.09565879357778112, 'joy': 0.1803284158706665, 'love': 0.003813757747411728, 'anger': 0.46531710903461165, 'fear': 0.2170937898709224, 'surprise': 0.0071727824383057085}, {'type': 'nightlife', 'country': 'Spain', 'date': ['The year'], 'sadness': 0.10222124845331365, 'joy': 0.28478240992806175, 'love': 0.014252717792987825, 'anger': 0.2806900675513528, 'fear': 0.2642353411587802, 'surprise': 0.00909095877950842}, {'type': 'nightlife', 'country': 'Hungary', 'date': ['last year'], 'sadness': 0.058570828312635416, 'joy': 0.8070244987487794, 'love': 0.005394712835550309, 'anger': 0.039493790256977086, 'fear': 0.025309339828044185, 'surprise': 0.0022069388896226883}, {'type': 'cultural', 'country': 'Cyprus', 'date': ['last year'], 'sadness': 0.06162150579194228, 'joy': 0.7274974960751004, 'love': 0.008415562659502029, 'anger': 0.06951509257157644, 'fear': 0.03733286473320591, 'surprise': 0.04472860790623559}, {'type': 'cultural', 'country': 'Belgium', 'date': ['a day'], 'sadness': 0.05615361633089683, 'joy': 0.8222867520650228, 'love': 0.003939632698893547, 'anger': 0.06055701216558616, 'fear': 0.018475865582780294, 'surprise': 0.0019204059566060704}]}  
+    suggestion = make_suggestion(history)
     print(suggestion)

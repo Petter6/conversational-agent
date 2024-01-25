@@ -25,7 +25,7 @@ import tensorflow as tf
 # print('imports done')
 import pandas as pd
 
-from AEM.suggestion import make_suggestion
+from AEM.suggestion import make_suggestion, make_bad_suggestion
 
 config = tf.compat.v1.ConfigProto()
 config.gpu_options.allow_growth=True
@@ -312,7 +312,7 @@ def get_locations_date(location_type):
         country_name = get_country(message)
 
     while not dates:
-        furhat.say(text=f"Can you repeat the date", blocking=True)
+        furhat.say(text=f"When did this trip happen?", blocking=True)
         doc = nlp(get_answer())
         dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
 
@@ -347,6 +347,33 @@ def get_duration():
     # return first_number.split()[0]
 
 
+def say_suggestion(entry, use_bad_suggestion=False):
+
+    if use_bad_suggestion:
+        selected_entry, final_category, preferred_country, reason = make_bad_suggestion(entry)
+        furhat.say(text="My suggestion without taking your emotions into account is")
+
+    else:
+        selected_entry, final_category, preferred_country, reason = make_suggestion(entry)
+        furhat.say(text="My suggestion when taking your emotions into account is")
+
+    if type(selected_entry) != pd.Series:
+        furhat.say(text=f"According to your current financial situation, i cannot give you a good suggestion", blocking=True)
+        return
+
+    if final_category == []:
+        furhat.say(text=f"Since you are low on budget, i suggest you visit {selected_entry['city_ascii']}", blocking=True)
+        return
+
+    furhat.say(text=f"I see you really enjoyed the following categories: {', '.join(final_category)}", blocking=True)
+
+    if preferred_country:
+        furhat.say(text=f"I see you really enjoyed your stay in {preferred_country}", blocking=True)
+        furhat.say(text=f"Which is why i suggest you go to {selected_entry['city_ascii']}, a city in {preferred_country}", blocking=True)
+        return
+    
+    furhat.say(text = f"It seems like you don't have a preferred country, I suggest you visit {selected_entry['city_ascii']} in {selected_entry['country']}")
+
 if __name__ == '__main__':
     # Create an instance of the FurhatRemoteAPI class
     furhat = FurhatRemoteAPI("localhost")
@@ -355,160 +382,115 @@ if __name__ == '__main__':
     data = []
     data_trips = []
 
-    # # Ask for the user's name
-    # furhat.say(text="Hi there, my name is Alice, I'm going to help you find your next holiday destination. What is "
-    #                 "your name?", blocking=True)
-    # print("Getting user name")
-    # name = get_answer()
-    # print(f"Name: {name}")
-    # # Ask for the user's country
+    # Ask for the user's name
+    furhat.say(text="Hi there, my name is Alice, I'm going to help you find your next holiday destination. What is your name?", blocking=True)
+    print("Getting user name")
+    name = get_answer()
+    print(f"Name: {name}")
+    # Ask for the user's country
 
-    # furhat.say(text=f"Hi {name}, What country do you currently reside in?", blocking=True)
-    # country = ""
-    # while country == "":
-    #     print("Getting user country")
-    #     country = get_country(get_answer())
-    # print(f"Country: {country}")
+    furhat.say(text=f"Hi {name}, What country do you currently reside in?", blocking=True)
+    country = ""
+    while country == "":
+        print("Getting user country")
+        country = get_country(get_answer())
+    print(f"Country: {country}")
 
-    # # Ask for the user's city
-    # furhat.say(text="What city do you currently live in?", blocking=True)
-    # print("Getting user city")
-    # city = get_answer()
-    # print(f"City: {city}")
+    # Ask for the user's city
+    furhat.say(text="What city do you currently live in?", blocking=True)
+    print("Getting user city")
+    city = get_answer()
+    print(f"City: {city}")
 
-    # # Ask for the user's trip duration
-    # furhat.say(text="For how long do you want to go on vacation?", blocking=True)
-    # duration = get_duration()
-    # print(f"Duraction: {duration}")
+    # Ask for the user's trip duration
+    furhat.say(text="For how long do you want to go on vacation?", blocking=True)
+    duration = get_duration()
+    print(f"Duraction: {duration}")
 
-    # # Ask if it is the users dream trip
-    # # print(name)
-    # furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
-    # print("Dream trip?")
-    # dream = get_answer()
-    # print(f"Dream trip: {dream}")
+    # Ask if it is the users dream trip
+    # print(name)
+    furhat.say(text=f"Hi {name}, Is this your dream trip, so money is not an issue?", blocking=True)
+    print("Dream trip?")
+    dream = get_answer()
+    print(f"Dream trip: {dream}")
 
-    # if is_answer_positive(dream):
-    #     standard_of_living = 'dream'
-    #     standard_of_holiday = 'dream'
-    # else:
-    #     # Ask for the user's standard of living
-    #     furhat.say(text=f"How would you describe your current standard of living at your current location.",
-    #                blocking=True)
+    if is_answer_positive(dream):
+        standard_of_living = 'dream'
+        standard_of_holiday = 'dream'
+    else:
+        # Ask for the user's standard of living
+        furhat.say(text=f"How would you describe your current standard of living at your current location.",
+                   blocking=True)
 
-    #     standard_of_living = False
+        standard_of_living = False
 
-    #     while not standard_of_living:
-    #         furhat.say(text="Are you a low, medium or high spender in your city.", blocking=True)
-    #         print("Type of spender")
-    #         answer = get_answer()
-    #         standard_of_living = check_for(answer, ["low", "medium", "high"])
+        while not standard_of_living:
+            furhat.say(text="Are you a low, medium or high spender in your city.", blocking=True)
+            print("Type of spender")
+            answer = get_answer()
+            standard_of_living = check_for(answer, ["low", "medium", "high"])
         
-    #     print(f"Standard of Living: {standard_of_living}")
+        print(f"Standard of Living: {standard_of_living}")
 
-    #     # Ask for the user's standard of living whilst on holiday
-    #     furhat.say(text="What is your desired cost of living at your holiday destination?", blocking=True)
+        # Ask for the user's standard of living whilst on holiday
+        furhat.say(text="What is your desired cost of living at your holiday destination?", blocking=True)
 
-    #     standard_of_holiday = False
+        standard_of_holiday = False
 
-    #     while not standard_of_holiday:
-    #         furhat.say(text="Will you be a low medium or high spender at the destination?", blocking=True)
-    #         print("Type of Spender")
-    #         answer = get_answer()
-    #         standard_of_holiday = check_for(answer, ["low", "medium", "high"])
+        while not standard_of_holiday:
+            furhat.say(text="Will you be a low medium or high spender at the destination?", blocking=True)
+            print("Type of Spender")
+            answer = get_answer()
+            standard_of_holiday = check_for(answer, ["low", "medium", "high"])
         
 
-    #     print(f"Standard of Holiday: {standard_of_holiday}")
+        print(f"Standard of Holiday: {standard_of_holiday}")
 
-    # # Ask the user if they have ever been to a beach town
-    # furhat.say(text=f"Have you ever been on holiday to a town near a beach?", blocking=True)
-    # # furhat.say(text=f"which of these holidays have you been to from beach, mountain, cultural site, nightlife or festival", blocking=True)
-    
-    # beach = get_answer()
 
-    # while is_answer_positive(beach):
-    #     furhat.say(text=f"Could you tell me about a time you went to a town near a beach?", blocking=True)
-    #     response = get_locations_date("beach")
-    #     data_trips.append(response)
-    #     options = ['pretty and quiet', 'hope you went surfing', 'great, other than the jellyfishes', 'hard to top that']
-    #     chosen = random.randint(0,len(options)-1)
-    #     furhat.say(text=f"{options[chosen]}, Were there any other times you went on a holiday to a town near a beach?", blocking=True)
-    #     beach = get_answer()
-    
-    # # Ask the user if they have ever been to a cultural town
-    # furhat.say(text=f"Have you ever been on holiday to a cultural town?", blocking=True)
-    # cultural = get_answer()
 
-    # while is_answer_positive(cultural):
-    #     furhat.say(text=f"Could you tell me about a time you went to a cultural town?", blocking=True)
-    #     response = get_locations_date("cultural")
-    #     data_trips.append(response)
-    #     options = ['that sounds fun', 'historic indeed', 'so you like museums', 'hard to top that']
-    #     chosen = random.randint(0,len(options)-1)        
-    #     furhat.say(text=f"{options[chosen]}, Were there any other times you went on a holiday to a cultural town?", blocking=True)
-    #     cultural = get_answer()
+    def beach_visit():
+        # Ask the user if they have ever been to a beach town
+        furhat.say(text=f"Have you ever been on holiday to a town near a beach?", blocking=True)
+        # furhat.say(text=f"which of these holidays have you been to from beach, mountain, cultural site, nightlife or festival", blocking=True)
+        beach = get_answer()
 
-    # # Ask the user if they have ever been to a festival town
-    # furhat.say(text=f"Have you ever been on holiday to a festival town?", blocking=True)
-    # festival = get_answer()
+        while is_answer_positive(beach):
+            furhat.say(text=f"Could you tell me about a time you went to a town near a beach?", blocking=True)
+            response = get_locations_date("beach")
+            data_trips.append(response)
+            options = ['pretty and quiet', 'hope you went surfing', 'great, I hope there were no jellyfishes', 'hard to top that']
+            chosen = random.randint(0,len(options)-1)
+            furhat.say(text=f"{options[chosen]}, Were there any other times you went on a holiday to a town near a beach?", blocking=True)
+            beach = get_answer()
+        
+    def culture_visit():
+        # Ask the user if they have ever been to a cultural town
+        furhat.say(text=f"Have you ever been on holiday to a cultural town?", blocking=True)
+        cultural = get_answer()
 
-    # while is_answer_positive(festival):
-    #     furhat.say(text=f"Could you tell me about a time you went to a festival town?", blocking=True)
-    #     response = get_locations_date("festival")
-    #     data_trips.append(response)
-    #     options = ['definitely worth it', 'was goin to suggest this one', 'isn"t that a great one', 'hard to top that']
-    #     chosen = random.randint(0,len(options)-1)        
-    #     furhat.say(text=f"{options[chosen]}, Were there any other times you went on a holiday to a festival town?", blocking=True)
-    #     festival = get_answer()
+        while is_answer_positive(cultural):
+            furhat.say(text=f"Could you tell me about a time you went to a cultural town?", blocking=True)
+            response = get_locations_date("cultural")
+            data_trips.append(response)
+            options = ['that sounds fun', 'historic indeed', 'so you like museums', 'hard to top that']
+            chosen = random.randint(0,len(options)-1)        
+            furhat.say(text=f"{options[chosen]}, Were there any other times you went on a holiday to a cultural town?", blocking=True)
+            cultural = get_answer()
 
-    # # Ask the user if they have ever been to a nightlife town
-    # furhat.say(text=f"Have you ever been on holiday to a nightlife town?", blocking=True)
-    # nightlife = get_answer()
+    def fesitval_visit():
+        # Ask the user if they have ever been to a festival town
+        furhat.say(text=f"Have you ever been on holiday to a festival town?", blocking=True)
+        festival = get_answer()
 
-    # while is_answer_positive(nightlife):
-    #     furhat.say(text=f"Could you tell me about a time you went to a nightlife town?", blocking=True)
-    #     response = get_locations_date("nightlife")
-    #     data_trips.append(response)
-    #     options = ['that sounds fun', 'that"s a good party town', 'love the parties there', 'hope you went to a rave there']
-    #     chosen = random.randint(0,len(options)-1)        
-    #     furhat.say(text=f"{options[chosen]}, were there any other times you went on a holiday to a nightlife town?", blocking=True)
-    #     nightlife = get_answer()
+        while is_answer_positive(festival):
+            furhat.say(text=f"Could you tell me about a time you went to a festival town?", blocking=True)
+            response = get_locations_date("festival")
+            data_trips.append(response)
+            options = ['definitely worth it', 'was goin to suggest this one', 'isn"t that a great one', 'hard to top that']
+            chosen = random.randint(0,len(options)-1)        
+            furhat.say(text=f"{options[chosen]}, Were there any other times you went on a holiday to a festival town?", blocking=True)
+            festival = get_answer()
 
-    # # Ask the user if they have ever been to a mountain town
-    # furhat.say(text=f"Have you ever been on holiday to a mountain town?", blocking=True)
-    # mountain = get_answer()
-
-    # while is_answer_positive(mountain):
-    #     furhat.say(text=f"Could you tell me about a time you went to a mountain town?", blocking=True)
-    #     response = get_locations_date("mountain")
-    #     data_trips.append(response)
-    #     options = ['that sounds fun', 'hope you went climbing', 'isn"t that a great one', 'hard to top that']
-    #     chosen = random.randint(0,len(options)-1)
-    #     furhat.say(text=f"{options[chosen]}, were there any other times you went on a holiday to a mountain town?", blocking=True)
-    #     mountain = get_answer()
-
-    # entry = {"name": name, "country": country, "city": city, "standard_of_living": standard_of_living,
-    #          "standard_of_holiday": standard_of_holiday, "duration": duration, "trips": data_trips}
-    
-    
-    entry = {'name': 'Nathan.', 'country': 'Netherlands', 'city': 'Amster Kepler', 'standard_of_living': 'dream', 'standard_of_holiday': 'dream', 'duration': 4.285714285714286, 'trips': [{'type': 'beach', 'country': 'Portugal', 'date': ['2015'], 'sadness': 0.017118087828159333, 'joy': 0.5593237648010254, 'love': 0.004704339429736137, 'anger': 0.3062175760269165, 'fear': 0.04504127371311188, 'surprise': 0.06259498874843121}, {'type': 'beach', 'country': 'Netherlands', 'date': ['Yesterday'], 'sadness': 0.11977563908696173, 'joy': 0.7676355857849122, 'love': 0.005949277058243752, 'anger': 0.04000478506088258, 'fear': 0.04234143640846015, 'surprise': 0.0042932754829525955}, {'type': 'beach', 'country': 'Netherlands', 'date': ['2022'], 'sadness': 0.017032884573394604, 'joy': 0.7118481025695801, 'love': 0.0036800395697355274, 'anger': 0.2099499954743819, 'fear': 0.01876350371945988, 'surprise': 0.007089034088633278}, {'type': 'beach', 'country': 'China', 'date': ['2023'], 'sadness': 0.05136462897119614, 'joy': 0.0863092386355767, 'love': 0.7189593315124512, 'anger': 0.012041745144587297, 'fear': 0.0526331651955843, 'surprise': 0.026076463270645875}, {'type': 'cultural', 'country': 'Croatia', 'date': ['2023'], 'sadness': 0.07972648753060235, 'joy': 0.0476765886363056, 'love': 0.0008350875228643418, 'anger': 0.5750052545335559, 'fear': 0.26924884510040287, 'surprise': 0.01461883828788996}, {'type': 'nightlife', 'country': 'Netherlands', 'date': ['A year ago'], 'sadness': 0.06429234853982926, 'joy': 0.7902361808776855, 'love': 0.0021601734682917596, 'anger': 0.058606953597068794, 'fear': 0.030888607661426065, 'surprise': 0.008815703259408475}, {'type': 'mountain', 'country': 'Austria', 'date': ['2020'], 'sadness': 0.0506448135872682, 'joy': 0.8677606074015299, 'love': 0.0004209890961647034, 'anger': 0.008734157767146826, 'fear': 0.02332216572078566, 'surprise': 0.01011728929107388}]}
-
-    print(entry)
-
-    selected_entry, final_category, preferred_country, reason = make_suggestion(entry)
-    if type(selected_entry) != pd.Series:
-        furhat.say(text=f"I am sorry, according to your current financial situation, i cannot give you a good suggestion", blocking=True)
-        exit()
-
-    if final_category == []:
-        furhat.say(text=f"Since you are low on budget, i suggest you visit {selected_entry['city_ascii']}", blocking=True)
-        exit()
-
-    furhat.say(text=f"I see you really enjoyed the following categories: {', '.join(final_category)}", blocking=True)
-
-    if preferred_country:
-        furhat.say(text=f"I see you really enjoyed your stay in {preferred_country}", blocking=True)
-        furhat.say(text=f"Which is why i suggest you go to {selected_entry['city_ascii']}, a city in {preferred_country}", blocking=True)
-        exit()
-    
-    furhat.say(text = f"It seems like you don't have a preferred country, I suggest you visit {selected_entry['city_ascii']} in {selected_entry['country']}")
+    def night_visit():
+        # Ask the user if they have ever been to a nightlife town
+        furhat.say(text=f"Have you ever been on holiday t
